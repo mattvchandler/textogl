@@ -59,6 +59,30 @@ textogl::Static_text::~Static_text()
     glDeleteVertexArrays(1, &_vao);
 }
 
+textogl::Static_text::Static_text(Static_text && other):
+    _font(other._font),
+    _vao(other._vao),
+    _vbo(other._vbo),
+    _coord_data(std::move(other._coord_data)),
+    _text_box(std::move(other._text_box))
+{
+    other._vao = other._vbo = 0;
+}
+textogl::Static_text & textogl::Static_text::operator=(Static_text && other)
+{
+    if(this != &other)
+    {
+        _font = other._font;
+        _vao = other._vao;
+        _vbo = other._vbo;
+        _coord_data = std::move(other._coord_data);
+        _text_box = std::move(other._text_box);
+
+        other._vao = other._vbo = 0;
+    }
+    return *this;
+}
+
 // recreate text object with new string
 void textogl::Static_text::set_text(const std::string & utf8_input)
 {

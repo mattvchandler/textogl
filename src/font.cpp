@@ -356,6 +356,41 @@ namespace textogl
         }
     }
 
+    Font_sys::Font_sys(Font_sys && other):
+        _face(other._face),
+        _has_kerning_info(other._has_kerning_info),
+        _cell_bbox(std::move(other._cell_bbox)),
+        _line_height(other._line_height),
+        _tex_width(other._tex_width),
+        _tex_height(other._tex_height),
+        _page_map(std::move(other._page_map)),
+        _vao(other._vao),
+        _vbo(other._vbo)
+    {
+        other._face = nullptr;
+        other._vao = other._vbo = 0;
+        ++_common_ref_cnt;
+    }
+    Font_sys & Font_sys::operator=(Font_sys && other)
+    {
+        if(this != &other)
+        {
+            _face = other._face;
+            _has_kerning_info = other._has_kerning_info;
+            _cell_bbox = std::move(other._cell_bbox);
+            _line_height = other._line_height;
+            _tex_width = other._tex_width;
+            _tex_height = other._tex_height;
+            _page_map = std::move(other._page_map);
+            _vao = other._vao;
+            _vbo = other._vbo;
+
+            other._face = nullptr;
+            other._vao = other._vbo = 0;
+        }
+        return *this;
+    }
+
     // render text (rebuilds for each frame - use Static_text if text doesn't change)
     void Font_sys::render_text(const std::string & utf8_input, const Color & color,
             const Vec2<float> & win_size, const Vec2<float> & pos, const int align_flags)

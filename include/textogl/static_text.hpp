@@ -30,12 +30,20 @@
 namespace textogl
 {
     /// object for text which does not change often
-    class Static_text final
+    class Static_text
     {
         public:
             // create and build text buffer object
             Static_text(Font_sys & font, const std::string & utf8_input);
             ~Static_text();
+
+            // non-copyable, but moveable
+            Static_text(const Static_text &) = delete;
+            Static_text & operator=(const Static_text &) = delete;
+
+            Static_text(Static_text && other);
+            Static_text & operator=(Static_text && other);
+
             // recreate text object with new string
             void set_text(const std::string & utf8_input);
             // render the text

@@ -66,6 +66,13 @@ namespace textogl
             // deallocate font
             ~Font_sys();
 
+            // non-copyable, but moveable
+            Font_sys(const Font_sys &) = delete;
+            Font_sys & operator=(const Font_sys &) = delete;
+
+            Font_sys(Font_sys &&);
+            Font_sys & operator=(Font_sys &&);
+
             // render text (rebuilds for each frame - use Static_text if text doesn't change)
             void render_text(const std::string & utf8_input, const Color & color,
                     const Vec2<float> & win_size, const Vec2<float> & pos, const int align_flags = 0);
@@ -73,21 +80,23 @@ namespace textogl
         protected:
             /// container for common libraries and shader program
             /// every Font_sys obj can use the same instance of these
-            // TODO: copy/move ctors?
             class Font_common
             {
             public:
                 Font_common();
                 ~Font_common();
 
+                // non-copyable, non-moveable
+                Font_common(const Font_common &) = delete;
+                Font_common & operator=(const Font_common &) = delete;
+
+                Font_common(Font_common &&) = delete;
+                Font_common & operator=(Font_common &&) = delete;
+
                 FT_Library ft_lib;
                 GLuint prog;
                 std::unordered_map<std::string, GLuint> uniform_locations;
             };
-
-            // common libraries
-            static unsigned int _common_ref_cnt;
-            static std::unique_ptr<Font_common> _common_data;
 
             // bounding box
             template<typename T>
@@ -132,6 +141,10 @@ namespace textogl
 
             // create a font page texture
             std::unordered_map<uint32_t, Page>::iterator load_page(const uint32_t page_no);
+
+            // common libraries
+            static unsigned int _common_ref_cnt;
+            static std::unique_ptr<Font_common> _common_data;
 
             // font data
             FT_Face _face;

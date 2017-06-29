@@ -14,7 +14,7 @@
 
 int main(int argc, char * argv[])
 {
-    if(argc < 2)
+    if(argc < 3)
     {
         std::cerr<<"no font specified"<<std::endl;
         return EXIT_FAILURE;
@@ -35,7 +35,11 @@ int main(int argc, char * argv[])
     sf::Event ev;
 
     textogl::Font_sys font(argv[1], 32);
-    textogl::Static_text static_text(font, u8"Static ASDF! ø∅Ø💩‽", textogl::Color{0.0f, 1.0f, 0.0f, 1.0f});
+    textogl::Font_sys font2(argv[2], 72);
+
+    textogl::Static_text static_text(font, u8"Static ASDF! ø∅Ø💩‽");
+    textogl::Static_text static_text2(font2, "GIANT TEXT IS THE\nBEST KIND OF TEXT");
+    textogl::Static_text static_text3(font, "You shouldn't see this");
 
     bool running = true;
     while(running)
@@ -85,8 +89,18 @@ int main(int argc, char * argv[])
                 textogl::Vec2<float>{(float)win.getSize().x, (float)win.getSize().y},
                 textogl::Vec2<float>{0.0f, 0.0f}, textogl::Font_sys::ORIGIN_VERT_TOP | textogl::Font_sys::ORIGIN_HORIZ_LEFT);
 
-        static_text.render_text(font, textogl::Vec2<float>{(float)win.getSize().x, (float)win.getSize().y},
+        static_text.render_text(textogl::Color{0.0f, 1.0f, 0.0f, 1.0f}, textogl::Vec2<float>{(float)win.getSize().x, (float)win.getSize().y},
                 textogl::Vec2<float>{0.0f, 100.0f}, textogl::Font_sys::ORIGIN_VERT_TOP | textogl::Font_sys::ORIGIN_HORIZ_LEFT);
+
+        font2.render_text("ASDF", textogl::Color{0.0f, 0.0f, 1.0f, 1.0f},
+                textogl::Vec2<float>{(float)win.getSize().x, (float)win.getSize().y},
+                textogl::Vec2<float>{0.0f, 200.0f}, textogl::Font_sys::ORIGIN_VERT_TOP | textogl::Font_sys::ORIGIN_HORIZ_LEFT);
+
+        static_text2.render_text(textogl::Color{0.0f, 0.0f, 0.0f, 1.0f}, textogl::Vec2<float>{(float)win.getSize().x, (float)win.getSize().y},
+                textogl::Vec2<float>{0.0f, 300.0f}, textogl::Font_sys::ORIGIN_VERT_TOP | textogl::Font_sys::ORIGIN_HORIZ_LEFT);
+
+        static_text3.render_text(textogl::Color{0.0f, 1.0f, 1.0f, 1.0f}, textogl::Vec2<float>{(float)win.getSize().x, (float)win.getSize().y},
+                textogl::Vec2<float>{0.0f, 550.0f}, textogl::Font_sys::ORIGIN_VERT_TOP | textogl::Font_sys::ORIGIN_HORIZ_LEFT);
 
         win.display();
     }

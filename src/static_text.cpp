@@ -23,13 +23,14 @@
 
 #include "textogl/static_text.hpp"
 
+// TODO: cleaunp unneeded textogls and add doxygen comments
+
 // create and build text buffer object
-textogl::Static_text::Static_text(Font_sys & font, const std::string & utf8_input,
-    const textogl::Color & color):
-    _color(color)
+textogl::Static_text::Static_text(Font_sys & font, const std::string & utf8_input):
+    _font(&font)
 {
     // build the text
-    auto coord_data = build_text(utf8_input, font, _text_box);
+    auto coord_data = build_text(utf8_input, *_font, _text_box);
 
     _coord_data = coord_data.second;
 
@@ -40,12 +41,12 @@ textogl::Static_text::Static_text(Font_sys & font, const std::string & utf8_inpu
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(textogl::Vec2<float>) * coord_data.first.size(),
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coord_data.first.size(),
         coord_data.first.data(), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(textogl::Vec2<float>), NULL);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), NULL);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(textogl::Vec2<float>), (const GLvoid *)sizeof(textogl::Vec2<float>));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), (const GLvoid *)sizeof(Vec2<float>));
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
@@ -59,10 +60,10 @@ textogl::Static_text::~Static_text()
 }
 
 // recreate text object with new string
-void textogl::Static_text::set_text(Font_sys & font, const std::string & utf8_input)
+void textogl::Static_text::set_text(const std::string & utf8_input)
 {
     // build the text
-    auto coord_data = build_text(utf8_input, font, _text_box);
+    auto coord_data = build_text(utf8_input, *_font, _text_box);
 
     _coord_data = coord_data.second;
 
@@ -70,23 +71,17 @@ void textogl::Static_text::set_text(Font_sys & font, const std::string & utf8_in
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     // reload vertex data
-    glBufferData(GL_ARRAY_BUFFER, sizeof(textogl::Vec2<float>) * coord_data.first.size(),
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coord_data.first.size(),
         coord_data.first.data(), GL_STATIC_DRAW);
 
     glBindVertexArray(0);
 }
 
-// set font color
-void textogl::Static_text::set_color(const textogl::Color & color)
-{
-    _color = color;
-}
-
 // render the text
-void textogl::Static_text::render_text(Font_sys & font, const textogl::Vec2<float> & win_size,
-    const textogl::Vec2<float> & pos, const int align_flags)
+void textogl::Static_text::render_text(const Color & color, const Vec2<float> & win_size,
+    const Vec2<float> & pos, const int align_flags)
 {
-    textogl::Vec2<float> start_offset = pos;
+    Vec2<float> start_offset = pos;
 
     int horiz_align = align_flags & 0x3;
 
@@ -123,10 +118,10 @@ void textogl::Static_text::render_text(Font_sys & font, const textogl::Vec2<floa
     }
 
     // set up shader uniforms
-    glUseProgram(font._common_data->prog);
-    glUniform2fv(font._common_data->uniform_locations["start_offset"], 1, &start_offset[0]);
-    glUniform2fv(font._common_data->uniform_locations["win_size"], 1, &win_size[0]);
-    glUniform4fv(font._common_data->uniform_locations["color"], 1, &_color[0]);
+    glUseProgram(_font->_common_data->prog);
+    glUniform2fv(_font->_common_data->uniform_locations["start_offset"], 1, &start_offset[0]);
+    glUniform2fv(_font->_common_data->uniform_locations["win_size"], 1, &win_size[0]);
+    glUniform4fv(_font->_common_data->uniform_locations["color"], 1, &color[0]);
 
     glBindVertexArray(_vao);
 
@@ -139,7 +134,7 @@ void textogl::Static_text::render_text(Font_sys & font, const textogl::Vec2<floa
     for(const auto & cd: _coord_data)
     {
         // bind the page's texture
-        glBindTexture(GL_TEXTURE_2D, font._page_map[cd.page_no].tex);
+        glBindTexture(GL_TEXTURE_2D, _font->_page_map[cd.page_no].tex);
         glDrawArrays(GL_TRIANGLES, cd.start, cd.num_elements);
     }
 

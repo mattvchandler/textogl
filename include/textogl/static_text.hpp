@@ -34,20 +34,18 @@ namespace textogl
     {
         public:
             // create and build text buffer object
-            Static_text(Font_sys & font, const std::string & utf8_input, const textogl::Color & color);
+            Static_text(Font_sys & font, const std::string & utf8_input);
             ~Static_text();
             // recreate text object with new string
-            void set_text(Font_sys & font, const std::string & utf8_input);
-            // set font color
-            void set_color(const textogl::Color & color);
+            void set_text(const std::string & utf8_input);
             // render the text
-            void render_text(Font_sys & font, const textogl::Vec2<float> & win_size,
-                    const textogl::Vec2<float> & pos, const int align_flags = 0);
+            void render_text(const Color & color, const Vec2<float> & win_size,
+                    const Vec2<float> & pos, const int align_flags = 0);
 
         protected:
+            Font_sys * _font;
             GLuint _vao;
             GLuint _vbo;
-            textogl::Color _color;
             std::vector<Font_sys::Coord_data> _coord_data;
             Font_sys::Bbox<float> _text_box;
     };

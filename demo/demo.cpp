@@ -20,7 +20,7 @@ int main(int argc, char * argv[])
         return EXIT_FAILURE;
     }
 
-    sf::Window win(sf::VideoMode(1024, 786), "Textogl Demo", sf::Style::Default, sf::ContextSettings(32, 8, 0, 4, 0));
+    sf::Window win(sf::VideoMode(1024, 786), "Textogl Demo", sf::Style::Default, sf::ContextSettings(24, 8, 0, 3, 0));
     win.setKeyRepeatEnabled(false);
 
     // initialize glew
@@ -39,7 +39,7 @@ int main(int argc, char * argv[])
 
     textogl::Static_text static_text(font, u8"Static ASDF! ø∅Ø💩‽");
     textogl::Static_text static_text2(font2, "GIANT TEXT IS THE\nBEST KIND OF TEXT");
-    textogl::Static_text static_text3(font, "You shouldn't see this");
+    textogl::Static_text static_text3(font, "More text");
 
     bool running = true;
     while(running)
@@ -62,7 +62,6 @@ int main(int argc, char * argv[])
             }
         }
 
-        using namespace std::chrono_literals;
         static int frame_count = 0;
         static std::ostringstream fps_format;
 
@@ -72,7 +71,7 @@ int main(int argc, char * argv[])
 
         static float fps = 0.0f;
 
-        if(duration > 100ms)
+        if(duration > std::chrono::milliseconds(100))
         {
             fps = (float)frame_count / duration.count();
             last_frame = now;

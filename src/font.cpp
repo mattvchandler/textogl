@@ -467,9 +467,6 @@ namespace textogl
     // create a font page texture
     std::unordered_map<uint32_t, Font_sys::Page>::iterator Font_sys::load_page(const uint32_t page_no)
     {
-        std::ostringstream ostream;
-        ostream<<"Loading font page "<<std::hex<<std::showbase<<page_no;
-
         // this assumes the page has not been created yet
         auto page_i = _page_map.emplace(std::make_pair(page_no, Page())).first;
         Page & page = page_i->second;

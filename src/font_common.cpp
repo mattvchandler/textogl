@@ -81,27 +81,26 @@ namespace textogl
         glShaderSource(vert, 1, &vert_shader_src, NULL);
         glShaderSource(frag, 1, &frag_shader_src, NULL);
 
-        for(auto i : {vert, frag})
+        for(auto i : {std::make_pair(vert, "vertex"), std::make_pair(frag, "fragement")})
         {
-            glCompileShader(i);
+            glCompileShader(i.first);
 
             GLint compile_status;
-            glGetShaderiv(i, GL_COMPILE_STATUS, &compile_status);
+            glGetShaderiv(i.first, GL_COMPILE_STATUS, &compile_status);
 
             if(compile_status != GL_TRUE)
             {
                 GLint log_length;
-                glGetShaderiv(i, GL_INFO_LOG_LENGTH, &log_length);
+                glGetShaderiv(i.first, GL_INFO_LOG_LENGTH, &log_length);
                 std::vector<char> log(log_length + 1);
                 log.back() = '\0';
-                glGetShaderInfoLog(i, log_length, NULL, log.data());
+                glGetShaderInfoLog(i.first, log_length, NULL, log.data());
 
                 glDeleteShader(vert);
                 glDeleteShader(frag);
                 FT_Done_FreeType(ft_lib);
 
-                // TODO: some information about which shader failed would be nice
-                throw std::system_error(compile_status, std::system_category(), std::string("Error compiling shader: \n") +
+                throw std::system_error(compile_status, std::system_category(), std::string("Error compiling ") + i.second + " shader: \n" +
                         std::string(log.data()));
             }
         }

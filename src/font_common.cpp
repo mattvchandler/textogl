@@ -1,7 +1,7 @@
 // font_libs.cpp
 // shared font libraries
 
-// Copyright 2015 Matthew Chandler
+// Copyright 2017 Matthew Chandler
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,45 +25,8 @@
 
 #include <system_error>
 
-// GLSL shaders
-// TODO: include these from separate file (so we can have syntax highlighting, etc
-const GLchar * const vert_shader_src = R"(
-#version 130
-
-in vec2 vert_pos;
-in vec2 vert_tex_coords;
-
-uniform vec2 start_offset;
-uniform vec2 win_size;
-
-out vec2 tex_coord;
-
-void main()
-{
-    tex_coord = vert_tex_coords;
-    // convert pixel coords to screen coords
-    vec2 pix_pos = vert_pos + start_offset;
-    gl_Position = vec4(pix_pos.x * 2.0 / win_size.x - 1.0,
-        1.0 - pix_pos.y * 2.0 / win_size.y, 0.0, 1.0);
-}
-)";
-
-const GLchar * const frag_shader_src = R"(
-#version 130
-
-in vec2 tex_coord;
-
-uniform sampler2D font_page;
-uniform vec4 color;
-
-out vec4 frag_color;
-
-void main()
-{
-    // get alpha from font texture
-    frag_color = vec4(color.rgb, color.a * textureLod(font_page, tex_coord, 0.0).r);
-}
-)";
+// include shader source strings (this file is assembled from shader files by CMake)
+#include "shaders.cpp"
 
 namespace textogl
 {

@@ -163,10 +163,10 @@ namespace textogl
             GLuint _vbo;
 
             friend class Static_text;
-            friend std::pair<std::vector<textogl::Vec2<float>>, std::vector<textogl::Font_sys::Coord_data>> build_text(
+            friend std::pair<std::vector<Vec2<float>>, std::vector<Font_sys::Coord_data>> build_text(
                     const std::string & utf8_input,
-                    textogl::Font_sys & font_sys,
-                    textogl::Font_sys::Bbox<float> & font_box_out);
+                    Font_sys & font_sys,
+                    Font_sys::Bbox<float> & font_box_out);
     };
 }
 

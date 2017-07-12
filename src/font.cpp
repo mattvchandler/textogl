@@ -30,7 +30,13 @@
 #include <system_error>
 #include <vector>
 
-// Convert a UTF-8 string to a UTF-32 string
+/// Convert a UTF-8 string to a UTF-32 string
+
+/// Minimal verification is done to ensure that the input is valid UTF-8. If any
+/// invalid byte sequences are detected, they will be replaced by the replacement
+/// character: '�'
+/// @param utf8 UTF-8 string to convert
+/// @returns UTF-32 string corresponding to the input
 std::u32string utf8_to_utf32(const std::string & utf8)
 {
     std::u32string utf32;
@@ -123,11 +129,19 @@ std::u32string utf8_to_utf32(const std::string & utf8)
 
 namespace textogl
 {
-    // Build buffer of quads for text display
+    /// Build buffer of quads for and coordinate data for text display
+
+    /// @param[in] utf8_input Text to build data for
+    /// @param[in] font_sys Font system data
+    /// @param[out] font_box_out Bounding box of resulting text
+    /// @returns A pair of
+    /// * Quad coordinates, ready to be stored into an OpenGL VBO
+    /// * VBO start and end data for use in glDrawArrays
     std::pair<std::vector<Vec2<float>>, std::vector<Font_sys::Coord_data>> build_text(
             const std::string & utf8_input,
             Font_sys & font_sys,
-            Font_sys::Bbox<float> & font_box_out)
+            Font_sys::Bbox<float> & font_box_out
+            )
     {
         Vec2<float> pen{0.0f, 0.0f};
 
@@ -249,7 +263,6 @@ namespace textogl
         return coord_data;
     }
 
-    // Load font libraries and open a font file
     Font_sys::Font_sys(const std::string & font_path, const unsigned int font_size,
             const unsigned int v_dpi, const unsigned int h_dpi)
     {
@@ -275,7 +288,7 @@ namespace textogl
             }
         }
 
-        // select unicide charmap (should be default for most fonts)
+        // select unicode charmap (should be default for most fonts)
         if(FT_Select_Charmap(_face, FT_ENCODING_UNICODE) != FT_Err_Ok)
         {
             FT_Done_Face(_face);
@@ -336,7 +349,6 @@ namespace textogl
         glUseProgram(0);
     }
 
-    // deallocate font
     Font_sys::~Font_sys()
     {
         FT_Done_Face(_face);
@@ -391,7 +403,6 @@ namespace textogl
         return *this;
     }
 
-    // render text (rebuilds for each frame - use Static_text if text doesn't change)
     void Font_sys::render_text(const std::string & utf8_input, const Color & color,
             const Vec2<float> & win_size, const Vec2<float> & pos, const int align_flags)
     {
@@ -464,7 +475,6 @@ namespace textogl
         glBindVertexArray(0);
     }
 
-    // create a font page texture
     std::unordered_map<uint32_t, Font_sys::Page>::iterator Font_sys::load_page(const uint32_t page_no)
     {
         // this assumes the page has not been created yet
@@ -505,6 +515,8 @@ namespace textogl
             c.glyph_i = glyph_i;
 
             // copy glyph from freetype to texture storage
+            // TODO: we are assuming bmp->pixel_mode == FT_PIXEL_MODE_GRAY here.
+            // We will probably want to allow other formats at some point
             for(std::size_t y = 0; y < (std::size_t)bmp->rows; ++y)
             {
                 for(std::size_t x = 0; x < (std::size_t)bmp->width; ++x)
@@ -512,7 +524,6 @@ namespace textogl
                     long tbl_img_y = tbl_row * _cell_bbox.height() + _cell_bbox.ul.y - slot->bitmap_top + y;
                     long tbl_img_x = tbl_col * _cell_bbox.width() - _cell_bbox.ul.x + slot->bitmap_left + x;
 
-                    // TODO: monochrome fonts?
                     tex_data[tbl_img_y * _tex_width + tbl_img_x] = bmp->buffer[y * bmp->width + x];
                 }
             }

@@ -1,5 +1,5 @@
-// static_text.cpp
-// static text object
+/// @file
+/// @brief Static text object
 
 // Copyright 2017 Matthew Chandler
 
@@ -23,12 +23,10 @@
 
 #include "textogl/static_text.hpp"
 
-// TODO: add doxygen comments
 // TODO: lot's of common functionality inbetween this and font.cpp. can we make more shared funcs?
 
 namespace textogl
 {
-    // create and build text buffer object
     Static_text::Static_text(Font_sys & font, const std::string & utf8_input):
         _font(&font)
     {
@@ -86,7 +84,6 @@ namespace textogl
         return *this;
     }
 
-    // recreate text object with new string
     void Static_text::set_text(const std::string & utf8_input)
     {
         // build the text
@@ -104,7 +101,6 @@ namespace textogl
         glBindVertexArray(0);
     }
 
-    // render the text
     void Static_text::render_text(const Color & color, const Vec2<float> & win_size,
             const Vec2<float> & pos, const int align_flags)
     {

@@ -35,133 +35,217 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+/// OpenGL Font rendering types
+
 /// @ingroup textogl
 namespace textogl
 {
+    /// %Color vector
+
+    /// Simple RGBA color vector
     struct Color
     {
-        float r, g, b, a;
+        float r; ///< Red component value
+        float g; ///< Green component value
+        float b; ///< Blue component value
+        float a; ///< Alpha component value
+
+        /// Access component by index
+
+        /// To pass color to OpenGL, do: <tt>&color[0]</tt>
+        /// @{
         float & operator[](std::size_t i) { return (&r)[i]; }
         const float & operator[](std::size_t i) const { return (&r)[i]; }
+        /// @}
     };
 
+    /// 2D Vector
     template<typename T>
     struct Vec2
     {
-        T x, y;
+        T x; ///< X component
+        T y; ///< Y component
+
+        /// Access component by index
+
+        /// To pass vector to OpenGL, do: <tt>&vec2[0]</tt>
+        /// @{
         float & operator[](std::size_t i) { return (&x)[i]; }
         const float & operator[](std::size_t i) const { return (&x)[i]; }
+        /// @}
     };
 
-    enum Text_origin {ORIGIN_HORIZ_BASELINE = 0x00, ORIGIN_HORIZ_LEFT = 0x01, ORIGIN_HORIZ_RIGHT = 0x02, ORIGIN_HORIZ_CENTER = 0x03,
-        ORIGIN_VERT_BASELINE = 0x00, ORIGIN_VERT_TOP = 0x04, ORIGIN_VERT_BOTTOM = 0x08, ORIGIN_VERT_CENTER = 0x0C};
+    /// Text origin specification
+    enum Text_origin
+    {
+        ORIGIN_HORIZ_BASELINE = 0x00, ///< Horizontal text origin at baseline
+        ORIGIN_HORIZ_LEFT     = 0x01, ///< Horizontal text origin at left edge
+        ORIGIN_HORIZ_RIGHT    = 0x02, ///< Horizontal text origin at right edge
+        ORIGIN_HORIZ_CENTER   = 0x03, ///< Horizontal text origin at center
 
+        ORIGIN_VERT_BASELINE  = 0x00, ///< Vertical text origin at baseline
+        ORIGIN_VERT_TOP       = 0x04, ///< Vertical text origin at left edge
+        ORIGIN_VERT_BOTTOM    = 0x08, ///< Vertical text origin at right edge
+        ORIGIN_VERT_CENTER    = 0x0C  ///< Vertical text origin at center
+    };
 
     /// Container for font and text rendering
-    class Font_sys final
+
+    /// Contains everything needed for rendering from the specified font at the
+    /// specified size. Unicode is supported for all glyphs provided by the
+    /// specified font.
+    ///
+    /// Rendering data is created by unicode code page (block of 256 code-points),
+    /// as it is used. Only those pages that are used are built. The 1st page
+    /// (Basic Latin and Latin-1 Supplement) is always created.
+    class Font_sys
     {
         public:
-            // Load font libraries and open a font file
-            Font_sys(const std::string & font_path, const unsigned int font_size,
-                    const unsigned int v_dpi = 96, const unsigned int h_dpi = 96);
-            // deallocate font
+            /// Load a font file at a specified size
+            Font_sys(const std::string & font_path, ///< Path to font file to use
+                     const unsigned int font_size,  ///< Font size (in points)
+                     const unsigned int v_dpi = 96, ///< Font vertical DPI
+                     const unsigned int h_dpi = 96  ///< Font horizontal DPI
+                     );
             ~Font_sys();
 
-            // non-copyable, but moveable
+            /// @name Non-copyable
+
+            /// Instances of Font_sys cannot be copied
+            /// @{
             Font_sys(const Font_sys &) = delete;
             Font_sys & operator=(const Font_sys &) = delete;
+            /// @}
 
+            /// @{
             Font_sys(Font_sys &&);
             Font_sys & operator=(Font_sys &&);
+            /// @}
 
-            // render text (rebuilds for each frame - use Static_text if text doesn't change)
-            void render_text(const std::string & utf8_input, const Color & color,
-                    const Vec2<float> & win_size, const Vec2<float> & pos, const int align_flags = 0);
+            /// Render given text
 
-        protected:
-            /// container for common libraries and shader program
-            /// every Font_sys obj can use the same instance of these
+            /// Renders the text supplied in utf8_input parameter
+            /// @note This will rebuild the OpenGL primitives each call.
+            /// If the text will not change frequently, use a Static_text object
+            /// instead
+            void render_text(const std::string & utf8_input, ///< Text to render, in UTF-8 encoding. For best performance, normalize the string before rendering
+                             const Color & color,            ///< Text Color
+                             const Vec2<float> & win_size,   ///< Window dimensions. A Vec2 with X = width and Y = height
+                             const Vec2<float> & pos,        ///< Render position, in screen pixels
+                             const int align_flags = 0       ///< Text Alignment. Should be #Text_origin flags bitwise-OR'd together
+                             );
+
+        private:
+
+            /// Container for Freetype library object and shader program
+
+            /// Every Font_sys object can use the same instance of Font_Common,
+            /// so only one should ever be initialized at any given time.
+            /// Access to the single instance provied through Font_sys::_common_data
             class Font_common
             {
             public:
                 Font_common();
                 ~Font_common();
 
-                // non-copyable, non-moveable
+                /// Non-copyable, non-movable
+                /// @{
                 Font_common(const Font_common &) = delete;
                 Font_common & operator=(const Font_common &) = delete;
 
                 Font_common(Font_common &&) = delete;
                 Font_common & operator=(Font_common &&) = delete;
+                /// @}
 
-                FT_Library ft_lib;
-                GLuint prog;
-                std::unordered_map<std::string, GLuint> uniform_locations;
+                FT_Library ft_lib; ///< Freetype library object. [See Freetype documentation](https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_Library)
+                GLuint prog;       ///< OpenGL shader program index
+                std::unordered_map<std::string, GLuint> uniform_locations; ///< OpenGL shader program uniform location indexes
             };
 
-            // bounding box
+            /// Bounding box
+
+            /// Used for laying out text and defining character and text boundaries
             template<typename T>
             struct Bbox
             {
-                Vec2<T> ul;
-                Vec2<T> lr;
+                Vec2<T> ul; ///< Upper-left corner
+                Vec2<T> lr; ///< Lower-right corner
 
+                /// Get the width of the box
                 T width() const
                 {
                     return lr.x - ul.x;
                 }
+
+                /// Get the height of the box
                 T height() const
                 {
                     return ul.y - lr.y;
                 }
             };
 
-            // vertex buffer coordinate data
+            /// OpenGL Vertex buffer object data
             struct Coord_data
             {
-                uint32_t page_no;
-                std::size_t start;
-                std::size_t num_elements;
+                uint32_t page_no;         ///< Unicode code page number for a set of characters
+                std::size_t start;        ///< Starting index into \ref _vbo for this pages's quads
+                std::size_t num_elements; ///< Number of indexs to render for this page
             };
 
-            // character info
+            /// Character info
+
+            /// Contains information about a single code-point (character)
             struct Char_info
             {
-                Vec2<int> origin;
-                Vec2<int> advance;
-                Bbox<int> bbox;
+                Vec2<int> origin;  ///< Character's origin within \ref bbox
+                Vec2<int> advance; ///< Distance to next char's origin
+                Bbox<int> bbox;    ///< Bounding box for the character
                 FT_UInt glyph_i;
             };
 
-            // font page
+            /// Font page
+
+            /// Texture for a single Unicode code 'page' (where a page is 256
+            /// consecutive code points)
             struct Page
             {
-                GLuint tex;
-                Char_info char_info[256];
+                GLuint tex;               ///< OpenGL Texture index for the page
+                Char_info char_info[256]; ///< Info for each code point on the page
             };
 
-            // create a font page texture
+            /// Create data for a code page
+
+            /// Creates texture and layout information for the given code page
+            /// @param page_no The Unicode page number to build
+            /// @returns iterator into \ref _page_map containing the page data
+            /// @note This assumes the page hasn't been created yet. Do not call
+            ///       if the page already exists in \ref _page_map
             std::unordered_map<uint32_t, Page>::iterator load_page(const uint32_t page_no);
 
-            // common libraries
-            static unsigned int _common_ref_cnt;
-            static std::unique_ptr<Font_common> _common_data;
+            static std::unique_ptr<Font_common> _common_data; ///< Font data common to all instances of Font_sys
+            static unsigned int _common_ref_cnt; ///< Reference count for \ref _common_data
 
-            // font data
-            FT_Face _face;
-            bool _has_kerning_info;
-            Bbox<int> _cell_bbox;
-            int _line_height;
+            /// @name Font data
+            /// @{
+            FT_Face _face;          ///< Font face. [See Freetype documentation](https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_Face)
+            bool _has_kerning_info; ///< \c true if the font has kerning information available
+            Bbox<int> _cell_bbox;   ///< Bounding box representing maximum extents of a glyph
+            int _line_height;       ///< Spacing between baselines for each line of text
+            /// @}
 
-            // texture size
-            size_t _tex_width, _tex_height;
+            /// @name Texture size
+            /// Width and height of the texture. Each font page will be rendered to a
+            /// grid of 16x16 glyphs, with each cell in the grid being
+            /// \ref _cell_bbox sized + 2px for padding
+            /// @{
+            size_t _tex_width;
+            size_t _tex_height;
+            /// @}
 
-            // font pages
-            std::unordered_map<uint32_t, Page> _page_map;
+            std::unordered_map<uint32_t, Page> _page_map; ///< Font pages
 
-            // OpenGL vertex object
-            GLuint _vao;
-            GLuint _vbo;
+            GLuint _vao; ///< OpenGL Vertex array object index
+            GLuint _vbo; ///< OpenGL Vertex buffer object index
 
             friend class Static_text;
             friend std::pair<std::vector<Vec2<float>>, std::vector<Font_sys::Coord_data>> build_text(

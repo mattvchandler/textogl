@@ -1,5 +1,5 @@
-// font_libs.cpp
-// shared font libraries
+/// @file
+/// @brief Shared font data
 
 // Copyright 2017 Matthew Chandler
 

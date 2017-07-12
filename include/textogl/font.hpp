@@ -53,13 +53,14 @@ namespace textogl
         const float & operator[](std::size_t i) const { return (&x)[i]; }
     };
 
+    enum Text_origin {ORIGIN_HORIZ_BASELINE = 0x00, ORIGIN_HORIZ_LEFT = 0x01, ORIGIN_HORIZ_RIGHT = 0x02, ORIGIN_HORIZ_CENTER = 0x03,
+        ORIGIN_VERT_BASELINE = 0x00, ORIGIN_VERT_TOP = 0x04, ORIGIN_VERT_BOTTOM = 0x08, ORIGIN_VERT_CENTER = 0x0C};
+
+
     /// Container for font and text rendering
     class Font_sys final
     {
         public:
-            enum {ORIGIN_HORIZ_BASELINE = 0x00, ORIGIN_HORIZ_LEFT = 0x01, ORIGIN_HORIZ_RIGHT = 0x02, ORIGIN_HORIZ_CENTER = 0x03,
-                ORIGIN_VERT_BASELINE = 0x00, ORIGIN_VERT_TOP = 0x04, ORIGIN_VERT_BOTTOM = 0x08, ORIGIN_VERT_CENTER = 0x0C};
-
             // Load font libraries and open a font file
             Font_sys(const std::string & font_path, const unsigned int font_size,
                     const unsigned int v_dpi = 96, const unsigned int h_dpi = 96);

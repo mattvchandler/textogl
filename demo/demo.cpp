@@ -86,20 +86,20 @@ int main(int argc, char * argv[])
 
         font.render_text(fps_format.str(), textogl::Color{1.0f, 0.0f, 0.0f, 1.0f},
                 textogl::Vec2<float>{(float)win.getSize().x, (float)win.getSize().y},
-                textogl::Vec2<float>{0.0f, 0.0f}, textogl::Font_sys::ORIGIN_VERT_TOP | textogl::Font_sys::ORIGIN_HORIZ_LEFT);
+                textogl::Vec2<float>{0.0f, 0.0f}, textogl::ORIGIN_VERT_TOP | textogl::ORIGIN_HORIZ_LEFT);
 
         static_text.render_text(textogl::Color{0.0f, 1.0f, 0.0f, 1.0f}, textogl::Vec2<float>{(float)win.getSize().x, (float)win.getSize().y},
-                textogl::Vec2<float>{0.0f, 100.0f}, textogl::Font_sys::ORIGIN_VERT_TOP | textogl::Font_sys::ORIGIN_HORIZ_LEFT);
+                textogl::Vec2<float>{0.0f, 100.0f}, textogl::ORIGIN_VERT_TOP | textogl::ORIGIN_HORIZ_LEFT);
 
         font2.render_text("ASDF", textogl::Color{0.0f, 0.0f, 1.0f, 1.0f},
                 textogl::Vec2<float>{(float)win.getSize().x, (float)win.getSize().y},
-                textogl::Vec2<float>{0.0f, 200.0f}, textogl::Font_sys::ORIGIN_VERT_TOP | textogl::Font_sys::ORIGIN_HORIZ_LEFT);
+                textogl::Vec2<float>{0.0f, 200.0f}, textogl::ORIGIN_VERT_TOP | textogl::ORIGIN_HORIZ_LEFT);
 
         static_text2.render_text(textogl::Color{0.0f, 0.0f, 0.0f, 1.0f}, textogl::Vec2<float>{(float)win.getSize().x, (float)win.getSize().y},
-                textogl::Vec2<float>{0.0f, 300.0f}, textogl::Font_sys::ORIGIN_VERT_TOP | textogl::Font_sys::ORIGIN_HORIZ_LEFT);
+                textogl::Vec2<float>{0.0f, 300.0f}, textogl::ORIGIN_VERT_TOP | textogl::ORIGIN_HORIZ_LEFT);
 
         static_text3.render_text(textogl::Color{0.0f, 1.0f, 1.0f, 1.0f}, textogl::Vec2<float>{(float)win.getSize().x, (float)win.getSize().y},
-                textogl::Vec2<float>{0.0f, 550.0f}, textogl::Font_sys::ORIGIN_VERT_TOP | textogl::Font_sys::ORIGIN_HORIZ_LEFT);
+                textogl::Vec2<float>{0.0f, 550.0f}, textogl::ORIGIN_VERT_TOP | textogl::ORIGIN_HORIZ_LEFT);
 
         win.display();
     }

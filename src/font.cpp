@@ -405,15 +405,15 @@ namespace textogl
         int horiz_align = align_flags & 0x3;
         switch(horiz_align)
         {
-            case Font_sys::ORIGIN_HORIZ_BASELINE:
+            case ORIGIN_HORIZ_BASELINE:
                 break;
-            case Font_sys::ORIGIN_HORIZ_LEFT:
+            case ORIGIN_HORIZ_LEFT:
                 start_offset.x -= text_box.ul.x;
                 break;
-            case Font_sys::ORIGIN_HORIZ_RIGHT:
+            case ORIGIN_HORIZ_RIGHT:
                 start_offset.x -= text_box.lr.x;
                 break;
-            case Font_sys::ORIGIN_HORIZ_CENTER:
+            case ORIGIN_HORIZ_CENTER:
                 start_offset.x -= text_box.ul.x + text_box.width() / 2.0f;
                 break;
         }
@@ -421,15 +421,15 @@ namespace textogl
         int vert_align = align_flags & 0xC;
         switch(vert_align)
         {
-            case Font_sys::ORIGIN_VERT_BASELINE:
+            case ORIGIN_VERT_BASELINE:
                 break;
-            case Font_sys::ORIGIN_VERT_TOP:
+            case ORIGIN_VERT_TOP:
                 start_offset.y -= text_box.ul.y;
                 break;
-            case Font_sys::ORIGIN_VERT_BOTTOM:
+            case ORIGIN_VERT_BOTTOM:
                 start_offset.y -= text_box.lr.y;
                 break;
-            case Font_sys::ORIGIN_VERT_CENTER:
+            case ORIGIN_VERT_CENTER:
                 start_offset.y -= text_box.lr.y + text_box.height() / 2.0f;
                 break;
         }

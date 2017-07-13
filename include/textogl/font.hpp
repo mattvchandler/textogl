@@ -110,13 +110,12 @@ namespace textogl
             ~Font_sys();
 
             /// @name Non-copyable
-
-            /// Instances of Font_sys cannot be copied
             /// @{
             Font_sys(const Font_sys &) = delete;
             Font_sys & operator=(const Font_sys &) = delete;
             /// @}
 
+            /// @name Movable
             /// @{
             Font_sys(Font_sys &&);
             Font_sys & operator=(Font_sys &&);
@@ -148,7 +147,7 @@ namespace textogl
                 Font_common();
                 ~Font_common();
 
-                /// Non-copyable, non-movable
+                /// @name Non-copyable, non-movable
                 /// @{
                 Font_common(const Font_common &) = delete;
                 Font_common & operator=(const Font_common &) = delete;
@@ -247,11 +246,13 @@ namespace textogl
             GLuint _vao; ///< OpenGL Vertex array object index
             GLuint _vbo; ///< OpenGL Vertex buffer object index
 
+            /// @cond INTERNAL
             friend class Static_text;
             friend std::pair<std::vector<Vec2<float>>, std::vector<Font_sys::Coord_data>> build_text(
                     const std::string & utf8_input,
                     Font_sys & font_sys,
                     Font_sys::Bbox<float> & font_box_out);
+            /// @endcond
     };
 }
 

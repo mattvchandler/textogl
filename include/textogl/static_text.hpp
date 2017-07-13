@@ -52,14 +52,17 @@ namespace textogl
                        );
             ~Static_text();
 
-            /// Instances of Static_text cannot be copied
+            /// @name Non-copyable
             /// @{
             Static_text(const Static_text &) = delete;
             Static_text & operator=(const Static_text &) = delete;
             /// @}
 
+            /// @name Movable
+            /// @{
             Static_text(Static_text && other);
             Static_text & operator=(Static_text && other);
+            /// @}
 
             /// Recreate text object with new string
 

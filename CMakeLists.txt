@@ -40,8 +40,34 @@ if(TEXTOGL_GEN_DOCS)
     find_package(Doxygen)
     if(DOXYGEN_FOUND)
 
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
-            ${PROJECT_BINARY_DIR}/Doxyfile)
+        file(GENERATE OUTPUT ${PROJECT_BINARY_DIR}/doxygen_gen.cmake CONTENT
+            "set(PROJECT_NAME \"${PROJECT_NAME}\")
+            set(TITLE \"${TITLE}\")
+            set(SUMMARY \"${SUMMARY}\")
+            set(CMAKE_INSTALL_PREFIX \"${CMAKE_INSTALL_PREFIX}\")
+            set(CMAKE_CURRENT_SOURCE_DIR  \"${CMAKE_CURRENT_SOURCE_DIR}\")
+            set(TEXTOGL_INTERNAL_DOCS ${TEXTOGL_INTERNAL_DOCS})
+
+            if(TEXTOGL_INTERNAL_DOCS)
+                set(TEXTOGL_EXTRACT_INTERNAL_DOCS \"YES\")
+                set(TEXTOGL_NO_EXTRACT_INTERNAL_DOCS \"NO\")
+                set(TEXTOGL_DOC_FILE_PATTERNS \"*.cpp *.hpp *.md\")
+                set(TEXTOGL_DOC_ENABLED_SECTIONS \"INTERNAL\")
+            else()
+                set(TEXTOGL_EXTRACT_INTERNAL_DOCS \"NO\")
+                set(TEXTOGL_NO_EXTRACT_INTERNAL_DOCS \"YES\")
+                set(TEXTOGL_DOC_FILE_PATTERNS \"*.hpp *.md\")
+                set(TEXTOGL_DOC_ENABLED_SECTIONS \"\")
+            endif()
+
+            configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
+                ${PROJECT_BINARY_DIR}/Doxyfile)
+            ")
+
+        add_custom_command(
+            OUTPUT ${PROJECT_BINARY_DIR}/Doxyfile
+            COMMAND ${CMAKE_COMMAND} -P ${PROJECT_BINARY_DIR}/doxygen_gen.cmake
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
 
         add_custom_command(
             OUTPUT ${PROJECT_BINARY_DIR}/doc/html/index.html

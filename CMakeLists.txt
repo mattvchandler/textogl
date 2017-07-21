@@ -7,6 +7,12 @@ set(COPYRIGHT "2017 Matthew Chandler")
 set(SUMMARY "OpenGL Text renderer")
 set(WEBSITE "http://github.com/mattvchandler/textogl")
 
+set(VERSION_MAJOR 1)
+set(VERSION_MINOR 0)
+set(VERSION_PATCH 0)
+
+set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -30,8 +36,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModu
 add_subdirectory(src)
 add_subdirectory(demo)
 
-# TODO versioning
-
 # Doxygen documentation
 option(TEXTOGL_GEN_DOCS "Generate 'doc' target" ON)
 option(TEXTOGL_INTERNAL_DOCS "Generate documentation for private/internal methods, members, and functions" OFF)
@@ -44,6 +48,7 @@ if(TEXTOGL_GEN_DOCS)
             "set(PROJECT_NAME \"${PROJECT_NAME}\")
             set(TITLE \"${TITLE}\")
             set(SUMMARY \"${SUMMARY}\")
+            set(VERSION_SHORT \"${VERSION_SHORT}\")
             set(CMAKE_INSTALL_PREFIX \"${CMAKE_INSTALL_PREFIX}\")
             set(CMAKE_CURRENT_SOURCE_DIR  \"${CMAKE_CURRENT_SOURCE_DIR}\")
             set(TEXTOGL_INTERNAL_DOCS ${TEXTOGL_INTERNAL_DOCS})
@@ -73,6 +78,7 @@ if(TEXTOGL_GEN_DOCS)
             OUTPUT ${PROJECT_BINARY_DIR}/doc/html/index.html
             COMMAND ${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile
             WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
             DEPENDS ${PROJECT_BINARY_DIR}/Doxyfile
             # DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/README.md
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/textogl/*.hpp

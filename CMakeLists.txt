@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(textogl CXX)
 
-set(TITLE "textogl")
+set(TITLE "Textogl")
 set(AUTHOR "Matthew Chandler <tardarsauce@gmail.com>")
 set(COPYRIGHT "2017 Matthew Chandler")
 set(SUMMARY "OpenGL Text renderer")
@@ -80,7 +80,7 @@ if(TEXTOGL_GEN_DOCS)
             WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
             DEPENDS ${PROJECT_BINARY_DIR}/Doxyfile
-            # DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/README.md
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/textogl/*.hpp
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
             COMMENT "Generating documentation with Doxygen")
@@ -90,3 +90,5 @@ if(TEXTOGL_GEN_DOCS)
         set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES doc)
     endif()
 endif()
+
+# TODO installation, static vs dynamic

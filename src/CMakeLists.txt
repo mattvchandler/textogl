@@ -10,13 +10,13 @@ include_directories(
     ${GLEW_INCLUDE_DIRS}
     )
 
-add_library(textogl
+add_library(${PROJECT_NAME}
     font.cpp
     font_common.cpp
     static_text.cpp
     )
 
-target_link_libraries(textogl
+target_link_libraries(${PROJECT_NAME}
     ${FREETYPE_LIBRARIES}
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
@@ -41,4 +41,10 @@ add_custom_target(shaders
     COMMENT "Including shader source files"
     )
 
-add_dependencies(textogl shaders)
+add_dependencies(${PROJECT_NAME} shaders)
+
+install(TARGETS ${PROJECT_NAME}
+    ARCHIVE DESTINATION "lib"
+    LIBRARY DESTINATION "lib"
+    RUNTIME DESTINATION "bin"
+    )

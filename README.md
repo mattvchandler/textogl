@@ -26,10 +26,19 @@ Freetype).
 Textogl uses CMake to build
 
     $ mkdir build && cd build
-    $ cmake ..
+    $ cmake .. -DCMAKE_INSTALL_PREFIX=<prefix path> # add -DBUILD_SHARED_LIBS=1 for a shared libary
     $ make
+    # make install
 
-Library will be built at build/src/textogl.a
+#### Debian & derivatives
+Sqlitepp is configured to generate a .deb package file. To do so, substitute the
+above with the following:
+
+    $ mkdir build && cd build
+    $ cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIBS=1
+    $ make
+    $ cpack
+    # dpkg -i libtextogl-dev*.deb
 
 #### Documentation
 If doxygen is installed, library documentation can be generated with: `$ make doc`

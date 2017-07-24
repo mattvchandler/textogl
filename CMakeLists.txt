@@ -5,15 +5,13 @@ set(TITLE "Textogl")
 set(AUTHOR "Matthew Chandler <tardarsauce@gmail.com>")
 set(COPYRIGHT "2017 Matthew Chandler")
 set(SUMMARY "OpenGL Text renderer")
-set(WEBSITE "http://github.com/mattvchandler/textogl")
+set(WEBSITE "http://github.com/mattvchandler/${PROJECT_NAME}")
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 0)
 set(VERSION_PATCH 0)
 
 set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
@@ -26,14 +24,11 @@ add_compile_options(-Wall -Wextra)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
 
-if(MSYS AND CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CMAKE_EXE_LINKER_FLAGS "-mwindows")
-endif()
-
 # libraries
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
 add_subdirectory(src)
+# TODO: make demo optional, clean it up
 add_subdirectory(demo)
 
 # Doxygen documentation
@@ -81,7 +76,7 @@ if(TEXTOGL_GEN_DOCS)
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
             DEPENDS ${PROJECT_BINARY_DIR}/Doxyfile
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/README.md
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/textogl/*.hpp
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/*.hpp
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
             COMMENT "Generating documentation with Doxygen")
 
@@ -91,4 +86,67 @@ if(TEXTOGL_GEN_DOCS)
     endif()
 endif()
 
-# TODO installation, static vs dynamic
+# pkg-config and cmake 'find_package' files
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}-config.cmake.in
+    ${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+    @ONLY)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}-config-version.cmake.in
+    ${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+    @ONLY)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.pc.in
+    ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.pc
+    @ONLY)
+
+# installation
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}" DESTINATION "include")
+
+install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake" DESTINATION "lib/cmake/${PROJECT_NAME}")
+install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake" DESTINATION "lib/cmake/${PROJECT_NAME}")
+install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.pc" DESTINATION "share/pkgconfig")
+
+# CPack vars
+set(CPACK_GENERATOR TGZ)
+set(CPACK_PACKAGE_CONTACT "${AUTHOR}")
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY)
+set(CPACK_PACKAGE_NAME "lib${PROJECT_NAME}-dev")
+set(CPACK_PACKAGE_VERSION_MAJOR "${VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${TITLE}: ${SUMMARY}")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+set(CPACK_PACKAGE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+set(CPACK_PACKAGE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+
+set(CPACK_SOURCE_IGNORE_FILES
+    ${PROJECT_BINARY_DIR}/*
+    ${CMAKE_CURRENT_SOURCE_DIR}/.git/*
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}
+    )
+
+# Debian-specific settings
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    find_program(DPKG "dpkg")
+    if(DPKG)
+        set(CPACK_GENERATOR DEB;TGZ)
+        execute_process(COMMAND ${DPKG} --print-architecture
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
+        if(NOT INCLUDE_SQLITE)
+            set(CPACK_DEBIAN_PACKAGE_DEPENDS
+                "libsqlite3-0")
+        else()
+            set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
+        endif()
+        set(CPACK_DEBIAN_PACKAGE_SECTION "devel")
+        string(TOLOWER "${CPACK_PACKAGE_NAME}" CPACK_DEBIAN_PACKAGE_NAME)
+        set(CPACK_PACKAGE_FILE_NAME
+            "${CPACK_DEBIAN_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+    endif()
+endif()
+
+include(CPack)

@@ -221,6 +221,18 @@ namespace textogl
             ///       if the page already exists in \ref _page_map
             std::unordered_map<uint32_t, Page>::iterator load_page(const uint32_t page_no);
 
+            /// Common font rendering routine
+
+            /// Rendering calls common to Font_sys and Static_text
+            void render_text_common(const Color & color,                        ///< Text Color
+                                    const Vec2<float> & win_size,               ///< Window dimensions. A Vec2 with X = width and Y = height
+                                    const Vec2<float> & pos,                    ///< Render position, in screen pixels
+                                    const int align_flags,                      ///< Text Alignment. Should be #Text_origin flags bitwise-OR'd together
+                                    const Bbox<float> & text_box,               ///< Text's bounding box
+                                    const std::vector<Coord_data> & coord_data, ///< Pre-calculated coordinate data as returned by \ref build_text
+                                    GLuint vao                                  ///< OpenGL vertex array object
+                            );
+
             static std::unique_ptr<Font_common> _common_data; ///< Font data common to all instances of Font_sys
             static unsigned int _common_ref_cnt; ///< Reference count for \ref _common_data
 

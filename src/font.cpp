@@ -410,6 +410,21 @@ namespace textogl
         Bbox<float> text_box;
         auto coord_data = build_text(utf8_input, *this, text_box);
 
+        glBindVertexArray(_vao);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+
+        // load text into buffer object
+        // call glBufferData with NULL first - this is apparently faster for dynamic data loading
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coord_data.first.size(), NULL, GL_DYNAMIC_DRAW);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vec2<float>) * coord_data.first.size(), coord_data.first.data());
+
+        render_text_common(color, win_size, pos, align_flags, text_box, coord_data.second, _vao);
+    }
+
+    void Font_sys::render_text_common(const Color & color, const Vec2<float> & win_size,
+            const Vec2<float> & pos, const int align_flags, const Bbox<float> & text_box,
+            const std::vector<Coord_data> & coord_data, GLuint vao)
+    {
         Vec2<float> start_offset = pos;
 
         // offset origin to align to text bounding box
@@ -445,13 +460,7 @@ namespace textogl
                 break;
         }
 
-        glBindVertexArray(_vao);
-        glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-
-        // load text into buffer object
-        // call glBufferData with NULL first - this is apparently faster for dynamic data loading
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coord_data.first.size(), NULL, GL_DYNAMIC_DRAW);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vec2<float>) * coord_data.first.size(), coord_data.first.data());
+        glBindVertexArray(vao);
 
         // set up shader uniforms
         glUseProgram(_common_data->prog);
@@ -465,7 +474,7 @@ namespace textogl
         glActiveTexture(GL_TEXTURE14);
 
         // draw text, per page
-        for(const auto & cd: coord_data.second)
+        for(const auto & cd: coord_data)
         {
             // bind the page's texture
             glBindTexture(GL_TEXTURE_2D, _page_map[cd.page_no].tex);

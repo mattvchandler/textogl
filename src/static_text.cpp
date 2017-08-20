@@ -104,63 +104,6 @@ namespace textogl
     void Static_text::render_text(const Color & color, const Vec2<float> & win_size,
             const Vec2<float> & pos, const int align_flags)
     {
-        Vec2<float> start_offset = pos;
-
-        int horiz_align = align_flags & 0x3;
-
-        // offset origin to align to text bounding box
-        switch(horiz_align)
-        {
-            case ORIGIN_HORIZ_BASELINE:
-                break;
-            case ORIGIN_HORIZ_LEFT:
-                start_offset.x -= _text_box.ul.x;
-                break;
-            case ORIGIN_HORIZ_RIGHT:
-                start_offset.x -= _text_box.lr.x;
-                break;
-            case ORIGIN_HORIZ_CENTER:
-                start_offset.x -= _text_box.ul.x + _text_box.width() / 2.0f;
-                break;
-        }
-
-        int vert_align = align_flags & 0xC;
-        switch(vert_align)
-        {
-            case ORIGIN_VERT_BASELINE:
-                break;
-            case ORIGIN_VERT_TOP:
-                start_offset.y -= _text_box.ul.y;
-                break;
-            case ORIGIN_VERT_BOTTOM:
-                start_offset.y -= _text_box.lr.y;
-                break;
-            case ORIGIN_VERT_CENTER:
-                start_offset.y -= _text_box.lr.y + _text_box.height() / 2.0f;
-                break;
-        }
-
-        // set up shader uniforms
-        glUseProgram(_font->_common_data->prog);
-        glUniform2fv(_font->_common_data->uniform_locations["start_offset"], 1, &start_offset[0]);
-        glUniform2fv(_font->_common_data->uniform_locations["win_size"], 1, &win_size[0]);
-        glUniform4fv(_font->_common_data->uniform_locations["color"], 1, &color[0]);
-
-        glBindVertexArray(_vao);
-
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glActiveTexture(GL_TEXTURE14);
-
-        // draw text, per page
-        for(const auto & cd: _coord_data)
-        {
-            // bind the page's texture
-            glBindTexture(GL_TEXTURE_2D, _font->_page_map[cd.page_no].tex);
-            glDrawArrays(GL_TRIANGLES, cd.start, cd.num_elements);
-        }
-
-        glBindVertexArray(0);
+        _font->render_text_common(color, win_size, pos, align_flags, _text_box, _coord_data, _vao);
     }
 }

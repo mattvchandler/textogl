@@ -23,17 +23,14 @@
 
 #include "textogl/static_text.hpp"
 
-// TODO: lot's of common functionality inbetween this and font.cpp. can we make more shared funcs?
-
 namespace textogl
 {
     Static_text::Static_text(Font_sys & font, const std::string & utf8_input):
         _font(&font)
     {
         // build the text
-        auto coord_data = build_text(utf8_input, *_font, _text_box);
-
-        _coord_data = coord_data.second;
+        std::vector<Vec2<float>> coords;
+        std::tie(coords, _coord_data, _text_box) = _font->build_text(utf8_input);
 
         // set up buffer obj properties, load vertex data
         glGenVertexArrays(1, &_vao);
@@ -42,8 +39,8 @@ namespace textogl
         glBindVertexArray(_vao);
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coord_data.first.size(),
-                coord_data.first.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coords.size(),
+                coords.data(), GL_STATIC_DRAW);
 
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), NULL);
         glEnableVertexAttribArray(0);
@@ -87,16 +84,15 @@ namespace textogl
     void Static_text::set_text(const std::string & utf8_input)
     {
         // build the text
-        auto coord_data = build_text(utf8_input, *_font, _text_box);
-
-        _coord_data = coord_data.second;
+        std::vector<Vec2<float>> coords;
+        std::tie(coords, _coord_data, _text_box) = _font->build_text(utf8_input);
 
         glBindVertexArray(_vao);
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
         // reload vertex data
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coord_data.first.size(),
-                coord_data.first.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coords.size(),
+                coords.data(), GL_STATIC_DRAW);
 
         glBindVertexArray(0);
     }

@@ -233,6 +233,16 @@ namespace textogl
                                     GLuint vao                                  ///< OpenGL vertex array object
                             );
 
+            /// Build buffer of quads for and coordinate data for text display
+
+            /// @param utf8_input Text to build data for
+            /// @returns A tuple of
+            /// * Quad coordinates, ready to be stored into an OpenGL VBO
+            /// * VBO start and end data for use in glDrawArrays
+            /// * Bounding box of resulting text
+            std::tuple<std::vector<Vec2<float>>, std::vector<Coord_data>, Bbox<float>>
+            build_text(const std::string & utf8_input);
+
             static std::unique_ptr<Font_common> _common_data; ///< Font data common to all instances of Font_sys
             static unsigned int _common_ref_cnt; ///< Reference count for \ref _common_data
 
@@ -260,10 +270,6 @@ namespace textogl
 
             /// @cond INTERNAL
             friend class Static_text;
-            friend std::pair<std::vector<Vec2<float>>, std::vector<Font_sys::Coord_data>> build_text(
-                    const std::string & utf8_input,
-                    Font_sys & font_sys,
-                    Font_sys::Bbox<float> & font_box_out);
             /// @endcond
     };
 }

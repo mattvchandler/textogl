@@ -28,6 +28,7 @@
 #include <limits>
 #include <stdexcept>
 #include <system_error>
+#include <tuple>
 #include <vector>
 
 /// Convert a UTF-8 string to a UTF-32 string
@@ -129,140 +130,6 @@ std::u32string utf8_to_utf32(const std::string & utf8)
 
 namespace textogl
 {
-    /// Build buffer of quads for and coordinate data for text display
-
-    /// @param[in] utf8_input Text to build data for
-    /// @param[in] font_sys Font system data
-    /// @param[out] font_box_out Bounding box of resulting text
-    /// @returns A pair of
-    /// * Quad coordinates, ready to be stored into an OpenGL VBO
-    /// * VBO start and end data for use in glDrawArrays
-    std::pair<std::vector<Vec2<float>>, std::vector<Font_sys::Coord_data>> build_text(
-            const std::string & utf8_input,
-            Font_sys & font_sys,
-            Font_sys::Bbox<float> & font_box_out
-            )
-    {
-        Vec2<float> pen{0.0f, 0.0f};
-
-        // verts by font page
-        std::unordered_map<uint32_t, std::vector<Vec2<float>>> screen_and_tex_coords;
-
-        font_box_out.ul.x = std::numeric_limits<float>::max();
-        font_box_out.ul.y = std::numeric_limits<float>::max();
-        font_box_out.lr.x = std::numeric_limits<float>::min();
-        font_box_out.lr.y = std::numeric_limits<float>::min();
-
-        FT_UInt prev_glyph_i = 0;
-
-        for(auto & code_pt : utf8_to_utf32(utf8_input))
-        {
-            // handle newlines
-            if(code_pt == '\n')
-            {
-                pen.x = 0;
-                pen.y += font_sys._line_height;
-                prev_glyph_i = 0;
-                continue;
-            }
-
-            // get font page struct
-            uint32_t page_no = code_pt >> 8;
-            auto page_i = font_sys._page_map.find(page_no);
-
-            // load page if not already loaded
-            if(page_i == font_sys._page_map.end())
-            {
-                page_i = font_sys.load_page(code_pt >> 8);
-            }
-
-            Font_sys::Page & page = page_i->second;
-            Font_sys::Char_info & c = page.char_info[code_pt & 0xFF];
-
-            // add kerning if necessary
-            if(font_sys._has_kerning_info && prev_glyph_i && c.glyph_i)
-            {
-                FT_Vector kerning = {0, 0};
-                if(FT_Get_Kerning(font_sys._face, prev_glyph_i, c.glyph_i, FT_KERNING_DEFAULT, &kerning) != FT_Err_Ok)
-                {
-                    std::cerr<<"Can't load kerning for: "<<std::hex<<std::showbase<<code_pt;
-                }
-                pen.x += kerning.x / 64;
-                pen.y -= kerning.y / 64;
-            }
-
-            std::size_t tex_row = (code_pt >> 4) & 0xF;
-            std::size_t tex_col = code_pt & 0xF;
-
-            // texture coord of glyph's origin
-            Vec2<float> tex_origin = {(float)(tex_col * font_sys._cell_bbox.width() - font_sys._cell_bbox.ul.x),
-                (float)(tex_row * font_sys._cell_bbox.height() + font_sys._cell_bbox.ul.y)};
-
-            // push back vertex coords, and texture coords, interleaved, into a map by font page
-            // 1 unit to pixel scale
-            // lower left corner
-            screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.ul.x,
-                    pen.y - c.bbox.lr.y});
-            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.ul.x) / font_sys._tex_width,
-                    (tex_origin.y - c.bbox.lr.y) / font_sys._tex_height});
-            // lower right corner
-            screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.lr.x,
-                    pen.y - c.bbox.lr.y});
-            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.lr.x) / font_sys._tex_width,
-                    (tex_origin.y - c.bbox.lr.y) / font_sys._tex_height});
-            // upper left corner
-            screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.ul.x,
-                    pen.y - c.bbox.ul.y});
-            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.ul.x) / font_sys._tex_width,
-                    (tex_origin.y - c.bbox.ul.y) / font_sys._tex_height});
-
-            // upper left corner
-            screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.ul.x,
-                    pen.y - c.bbox.ul.y});
-            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.ul.x) / font_sys._tex_width,
-                    (tex_origin.y - c.bbox.ul.y) / font_sys._tex_height});
-            // lower right corner
-            screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.lr.x,
-                    pen.y - c.bbox.lr.y});
-            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.lr.x) / font_sys._tex_width,
-                    (tex_origin.y - c.bbox.lr.y) / font_sys._tex_height});
-            // upper right corner
-            screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.lr.x,
-                    pen.y - c.bbox.ul.y});
-            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.lr.x) / font_sys._tex_width,
-                    (tex_origin.y - c.bbox.ul.y) / font_sys._tex_height});
-
-            // expand bounding box for whole string
-            font_box_out.ul.x = std::min(font_box_out.ul.x, pen.x + c.bbox.ul.x);
-            font_box_out.ul.y = std::min(font_box_out.ul.y, pen.y - c.bbox.ul.y);
-            font_box_out.lr.x = std::max(font_box_out.lr.x, pen.x + c.bbox.lr.x);
-            font_box_out.lr.y = std::max(font_box_out.lr.y, pen.y - c.bbox.lr.y);
-
-            // advance to next origin
-            pen.x += c.advance.x / 64;
-            pen.y -= c.advance.y / 64;
-
-            prev_glyph_i = c.glyph_i;
-        }
-
-        // reorganize texture data into a contiguous array
-        std::pair<std::vector<Vec2<float>>, std::vector<Font_sys::Coord_data>> coord_data;
-
-        for(const auto & page: screen_and_tex_coords)
-        {
-            coord_data.second.emplace_back();
-            Font_sys::Coord_data & c = coord_data.second.back();
-
-            c.page_no = page.first;
-
-            c.start = coord_data.first.size() / 2;
-            coord_data.first.insert(coord_data.first.end(), page.second.begin(), page.second.end());
-            c.num_elements = coord_data.first.size() / 2 - c.start;
-        }
-
-        return coord_data;
-    }
-
     Font_sys::Font_sys(const std::string & font_path, const unsigned int font_size,
             const unsigned int v_dpi, const unsigned int h_dpi)
     {
@@ -407,18 +274,20 @@ namespace textogl
             const Vec2<float> & win_size, const Vec2<float> & pos, const int align_flags)
     {
         // build text buffer objs
-        Bbox<float> text_box;
-        auto coord_data = build_text(utf8_input, *this, text_box);
+        std::vector<Vec2<float>> coords;
+        std::vector<Font_sys::Coord_data> coord_data;
+        Font_sys::Bbox<float> text_box;
+        std::tie(coords, coord_data, text_box) = build_text(utf8_input);
 
         glBindVertexArray(_vao);
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
         // load text into buffer object
         // call glBufferData with NULL first - this is apparently faster for dynamic data loading
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coord_data.first.size(), NULL, GL_DYNAMIC_DRAW);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vec2<float>) * coord_data.first.size(), coord_data.first.data());
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coords.size(), NULL, GL_DYNAMIC_DRAW);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vec2<float>) * coords.size(), coords.data());
 
-        render_text_common(color, win_size, pos, align_flags, text_box, coord_data.second, _vao);
+        render_text_common(color, win_size, pos, align_flags, text_box, coord_data, _vao);
     }
 
     void Font_sys::render_text_common(const Color & color, const Vec2<float> & win_size,
@@ -554,5 +423,132 @@ namespace textogl
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         return page_i;
+    }
+
+    std::tuple<std::vector<Vec2<float>>, std::vector<Font_sys::Coord_data>, Font_sys::Bbox<float>>
+    Font_sys::build_text(const std::string & utf8_input)
+    {
+        Vec2<float> pen{0.0f, 0.0f};
+
+        // verts by font page
+        std::unordered_map<uint32_t, std::vector<Vec2<float>>> screen_and_tex_coords;
+
+        Bbox<float> font_box;
+
+        font_box.ul.x = std::numeric_limits<float>::max();
+        font_box.ul.y = std::numeric_limits<float>::max();
+        font_box.lr.x = std::numeric_limits<float>::min();
+        font_box.lr.y = std::numeric_limits<float>::min();
+
+        FT_UInt prev_glyph_i = 0;
+
+        for(auto & code_pt : utf8_to_utf32(utf8_input))
+        {
+            // handle newlines
+            if(code_pt == '\n')
+            {
+                pen.x = 0;
+                pen.y += _line_height;
+                prev_glyph_i = 0;
+                continue;
+            }
+
+            // get font page struct
+            uint32_t page_no = code_pt >> 8;
+            auto page_i = _page_map.find(page_no);
+
+            // load page if not already loaded
+            if(page_i == _page_map.end())
+            {
+                page_i = load_page(code_pt >> 8);
+            }
+
+            Font_sys::Page & page = page_i->second;
+            Font_sys::Char_info & c = page.char_info[code_pt & 0xFF];
+
+            // add kerning if necessary
+            if(_has_kerning_info && prev_glyph_i && c.glyph_i)
+            {
+                FT_Vector kerning = {0, 0};
+                if(FT_Get_Kerning(_face, prev_glyph_i, c.glyph_i, FT_KERNING_DEFAULT, &kerning) != FT_Err_Ok)
+                {
+                    std::cerr<<"Can't load kerning for: "<<std::hex<<std::showbase<<code_pt;
+                }
+                pen.x += kerning.x / 64;
+                pen.y -= kerning.y / 64;
+            }
+
+            std::size_t tex_row = (code_pt >> 4) & 0xF;
+            std::size_t tex_col = code_pt & 0xF;
+
+            // texture coord of glyph's origin
+            Vec2<float> tex_origin = {(float)(tex_col * _cell_bbox.width() - _cell_bbox.ul.x),
+                (float)(tex_row * _cell_bbox.height() + _cell_bbox.ul.y)};
+
+            // push back vertex coords, and texture coords, interleaved, into a map by font page
+            // 1 unit to pixel scale
+            // lower left corner
+            screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.ul.x,
+                    pen.y - c.bbox.lr.y});
+            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.ul.x) / _tex_width,
+                    (tex_origin.y - c.bbox.lr.y) / _tex_height});
+            // lower right corner
+            screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.lr.x,
+                    pen.y - c.bbox.lr.y});
+            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.lr.x) / _tex_width,
+                    (tex_origin.y - c.bbox.lr.y) / _tex_height});
+            // upper left corner
+            screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.ul.x,
+                    pen.y - c.bbox.ul.y});
+            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.ul.x) / _tex_width,
+                    (tex_origin.y - c.bbox.ul.y) / _tex_height});
+
+            // upper left corner
+            screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.ul.x,
+                    pen.y - c.bbox.ul.y});
+            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.ul.x) / _tex_width,
+                    (tex_origin.y - c.bbox.ul.y) / _tex_height});
+            // lower right corner
+            screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.lr.x,
+                    pen.y - c.bbox.lr.y});
+            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.lr.x) / _tex_width,
+                    (tex_origin.y - c.bbox.lr.y) / _tex_height});
+            // upper right corner
+            screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.lr.x,
+                    pen.y - c.bbox.ul.y});
+            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.lr.x) / _tex_width,
+                    (tex_origin.y - c.bbox.ul.y) / _tex_height});
+
+            // expand bounding box for whole string
+            font_box.ul.x = std::min(font_box.ul.x, pen.x + c.bbox.ul.x);
+            font_box.ul.y = std::min(font_box.ul.y, pen.y - c.bbox.ul.y);
+            font_box.lr.x = std::max(font_box.lr.x, pen.x + c.bbox.lr.x);
+            font_box.lr.y = std::max(font_box.lr.y, pen.y - c.bbox.lr.y);
+
+            // advance to next origin
+            pen.x += c.advance.x / 64;
+            pen.y -= c.advance.y / 64;
+
+            prev_glyph_i = c.glyph_i;
+        }
+
+        // reorganize texture data into a contiguous array
+        std::vector<Vec2<float>> coords;
+        std::vector<Font_sys::Coord_data> coord_data;
+
+
+        for(const auto & page: screen_and_tex_coords)
+        {
+            coord_data.emplace_back();
+            Font_sys::Coord_data & c = coord_data.back();
+
+            c.page_no = page.first;
+
+            c.start = coords.size() / 2;
+            coords.insert(coords.end(), page.second.begin(), page.second.end());
+            c.num_elements = coords.size() / 2 - c.start;
+        }
+
+        return std::make_tuple(coords, coord_data, font_box);
     }
 }

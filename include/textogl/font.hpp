@@ -32,6 +32,10 @@
 
 #include <GL/glew.h>
 
+#ifdef USE_GLM
+#include <glm/glm.hpp>
+#endif
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -43,6 +47,9 @@ namespace textogl
     /// %Color vector
 
     /// Simple RGBA color vector
+#ifdef USE_GLM
+    using Color = glm::vec4;
+#else
     struct Color
     {
         float r; ///< Red component value
@@ -58,22 +65,36 @@ namespace textogl
         const float & operator[](std::size_t i) const { return (&r)[i]; }
         /// @}
     };
+#endif
 
     /// 2D Vector
-    template<typename T>
-    struct Vec2
+    namespace detail
     {
-        T x; ///< X component
-        T y; ///< Y component
+        template<typename T>
+        struct Vec2
+        {
+            T x; ///< X component
+            T y; ///< Y component
 
-        /// Access component by index
+            /// Access component by index
 
-        /// To pass vector to OpenGL, do: <tt>&vec2[0]</tt>
-        /// @{
-        float & operator[](std::size_t i) { return (&x)[i]; }
-        const float & operator[](std::size_t i) const { return (&x)[i]; }
-        /// @}
+            /// To pass vector to OpenGL, do: <tt>&vec2[0]</tt>
+            /// @{
+            float & operator[](std::size_t i) { return (&x)[i]; }
+            const float & operator[](std::size_t i) const { return (&x)[i]; }
+            /// @}
+        };
+
+        template <typename T> struct Generic_vec2 { using t = Vec2<T>; };
+#ifdef USE_GLM
+        template<> struct Generic_vec2<bool>         { using t =  glm::bvec2; };
+        template<> struct Generic_vec2<double>       { using t =  glm::dvec2; };
+        template<> struct Generic_vec2<int>          { using t =  glm::ivec2; };
+        template<> struct Generic_vec2<unsigned int> { using t =  glm::uvec2; };
+        template<> struct Generic_vec2<float>        { using t =  glm::vec2;  };
+#endif
     };
+    template<typename T> using Vec2    = typename detail::Generic_vec2<T>::t;
 
     /// Text origin specification
     enum Text_origin

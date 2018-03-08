@@ -1,6 +1,7 @@
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(GLM)
 
 include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/../include
@@ -15,6 +16,11 @@ add_library(${PROJECT_NAME}
     font_common.cpp
     static_text.cpp
     )
+
+if(GLM_FOUND)
+    message("Found glm, building with glm support")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC "-DUSE_GLM")
+endif()
 
 target_link_libraries(${PROJECT_NAME}
     ${FREETYPE_LIBRARIES}

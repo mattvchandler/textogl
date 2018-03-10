@@ -47,6 +47,8 @@ namespace textogl
     /// %Color vector
 
     /// Simple RGBA color vector
+
+    /// @note If GLM is available, this is instead an alias for glm::vec4
 #ifdef USE_GLM
     using Color = glm::vec4;
 #else
@@ -68,33 +70,27 @@ namespace textogl
 #endif
 
     /// 2D Vector
-    namespace detail
-    {
-        template<typename T>
-        struct Vec2
-        {
-            T x; ///< X component
-            T y; ///< Y component
 
-            /// Access component by index
-
-            /// To pass vector to OpenGL, do: <tt>&vec2[0]</tt>
-            /// @{
-            float & operator[](std::size_t i) { return (&x)[i]; }
-            const float & operator[](std::size_t i) const { return (&x)[i]; }
-            /// @}
-        };
-
-        template <typename T> struct Generic_vec2 { using t = Vec2<T>; };
+    /// @note If GLM is available, this is instead an alias for glm::tvec2<T>
 #ifdef USE_GLM
-        template<> struct Generic_vec2<bool>         { using t =  glm::bvec2; };
-        template<> struct Generic_vec2<double>       { using t =  glm::dvec2; };
-        template<> struct Generic_vec2<int>          { using t =  glm::ivec2; };
-        template<> struct Generic_vec2<unsigned int> { using t =  glm::uvec2; };
-        template<> struct Generic_vec2<float>        { using t =  glm::vec2;  };
-#endif
+    template<typename T>
+    using Vec2 = glm::tvec2<T>;
+#else
+    template<typename T>
+    struct Vec2
+    {
+        T x; ///< X component
+        T y; ///< Y component
+
+        /// Access component by index
+
+        /// To pass vector to OpenGL, do: <tt>&vec2[0]</tt>
+        /// @{
+        float & operator[](std::size_t i) { return (&x)[i]; }
+        const float & operator[](std::size_t i) const { return (&x)[i]; }
+        /// @}
     };
-    template<typename T> using Vec2    = typename detail::Generic_vec2<T>::t;
+#endif
 
     /// Text origin specification
     enum Text_origin

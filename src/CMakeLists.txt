@@ -1,7 +1,10 @@
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(Freetype REQUIRED)
-find_package(GLM)
+
+if(USE_GLM)
+    find_package(GLM)
+endif()
 
 include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/../include

@@ -27,6 +27,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
 # libraries
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
+option(USE_GLM "Search for GLM and use that instead of internal Color / Vec2" ON)
+
 add_subdirectory(src)
 # TODO: make demo optional, clean it up
 add_subdirectory(demo)

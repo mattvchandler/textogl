@@ -22,11 +22,13 @@ Freetype).
 * [Freetype](https://www.freetype.org/)
 * OpenGL 3.0 +
     * OpenGL ES Support coming soon™
+* GLM (Optional - Allows passing glm vectors to textogl for colors and positions)
+* Compiler supporting c++11
 
 Textogl uses CMake to build
 
     $ mkdir build && cd build
-    $ cmake .. -DCMAKE_INSTALL_PREFIX=<prefix path> # add -DBUILD_SHARED_LIBS=1 for a shared libary
+    $ cmake .. -DCMAKE_INSTALL_PREFIX=<prefix path> # add -DBUILD_SHARED_LIBS=1 for a shared libary, add -DUSE_GLM=0 to skip checking for GLM
     $ make
     # make install
 

@@ -98,9 +98,10 @@ namespace textogl
         glGenVertexArrays(1, &_vao);
         glBindVertexArray(_vao);
         glGenBuffers(1, &_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
-        rebuild();
         // set up buffer obj properties, load vertex data
+        rebuild();
 
         glBindVertexArray(_vao);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), NULL);
@@ -120,6 +121,7 @@ namespace textogl
 
     Static_text::Impl::Impl(Impl && other):
         _font(other._font),
+        _text(other._text),
         _vao(other._vao),
         _vbo(other._vbo),
         _coord_data(std::move(other._coord_data)),
@@ -132,6 +134,7 @@ namespace textogl
         if(this != &other)
         {
             _font = other._font;
+            _text = other._text;
             _vao = other._vao;
             _vbo = other._vbo;
             _coord_data = std::move(other._coord_data);
@@ -183,8 +186,7 @@ namespace textogl
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
         // reload vertex data
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coords.size(),
-                coords.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coords.size(), coords.data(), GL_STATIC_DRAW);
 
         glBindVertexArray(0);
     }

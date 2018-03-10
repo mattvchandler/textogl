@@ -182,8 +182,6 @@ namespace textogl
             throw;
         }
 
-        _has_kerning_info = FT_HAS_KERNING(_face);
-
         // we're not going to throw now, so increment library ref count
         ++_common_ref_cnt;
 
@@ -282,6 +280,8 @@ namespace textogl
 
         _tex_width = _cell_bbox.width() * 16;
         _tex_height = _cell_bbox.height() * 16;
+
+        _has_kerning_info = FT_HAS_KERNING(_face);
 
         _page_map.clear();
     }

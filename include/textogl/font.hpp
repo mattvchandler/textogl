@@ -142,6 +142,16 @@ namespace textogl
             Font_sys & operator=(Font_sys &&);
             /// @}
 
+            /// Resize font
+
+            /// Resizes the font without destroying it
+            /// @note This will require rebuilding font textures
+            /// @note Any Static_text objects tied to this Font_sys will need to have Static_text::set_font_sys called
+            void resize(const unsigned int font_size,  ///< Font size (in points)
+                        const unsigned int v_dpi = 96, ///< Font vertical DPI
+                        const unsigned int h_dpi = 96  ///< Font horizontal DPI
+                        );
+
             /// Render given text
 
             /// Renders the text supplied in utf8_input parameter

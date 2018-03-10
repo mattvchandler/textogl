@@ -163,34 +163,27 @@ namespace textogl
             if(_common_ref_cnt == 0)
                 _common_data.reset();
 
-            throw std::system_error(err, std::system_category(), "No unicode charmap in font file: " + font_path);
+            throw std::runtime_error("No unicode charmap in font file: " + font_path);
         }
 
-        // select font size
         if(FT_Set_Char_Size(_face, font_size * 64, font_size * 64, h_dpi, v_dpi) != FT_Err_Ok)
         {
-            std::cerr<<"error setting size"<<std::endl;
+            throw std::runtime_error("Can't set font size: " + std::to_string(font_size));
+        }
 
+        try
+        {
+            resize(font_size, v_dpi, h_dpi);
+        }
+        catch(std::runtime_error &)
+        {
             FT_Done_Face(_face);
 
             if(_common_ref_cnt == 0)
                 _common_data.reset();
 
-            throw std::system_error(err, std::system_category(), "Can't set font size: " + std::to_string(font_size) + " for font file: " + font_path);
+            throw;
         }
-
-        // get bounding box that will fit any glyph, plus 2 px padding
-        // some glyphs overflow the reported box (antialiasing?) so at least one px is needed
-        _cell_bbox.ul.x = FT_MulFix(_face->bbox.xMin, _face->size->metrics.x_scale) / 64 - 2;
-        _cell_bbox.ul.y = FT_MulFix(_face->bbox.yMax, _face->size->metrics.y_scale) / 64 + 2;
-        _cell_bbox.lr.x = FT_MulFix(_face->bbox.xMax, _face->size->metrics.x_scale) / 64 + 2;
-        _cell_bbox.lr.y = FT_MulFix(_face->bbox.yMin, _face->size->metrics.y_scale) / 64 - 2;
-
-        // get newline height
-        _line_height = FT_MulFix(_face->height, _face->size->metrics.y_scale) / 64;
-
-        _tex_width = _cell_bbox.width() * 16;
-        _tex_height = _cell_bbox.height() * 16;
 
         _has_kerning_info = FT_HAS_KERNING(_face);
 
@@ -268,6 +261,28 @@ namespace textogl
             other._vao = other._vbo = 0;
         }
         return *this;
+    }
+
+    void Font_sys::resize(const unsigned int font_size, const unsigned int v_dpi, const unsigned int h_dpi)
+    {
+        // select font size
+        if(FT_Set_Char_Size(_face, font_size * 64, font_size * 64, h_dpi, v_dpi) != FT_Err_Ok)
+            throw std::runtime_error("Can't set font size: " + std::to_string(font_size));
+
+        // get bounding box that will fit any glyph, plus 2 px padding
+        // some glyphs overflow the reported box (antialiasing?) so at least one px is needed
+        _cell_bbox.ul.x = FT_MulFix(_face->bbox.xMin, _face->size->metrics.x_scale) / 64 - 2;
+        _cell_bbox.ul.y = FT_MulFix(_face->bbox.yMax, _face->size->metrics.y_scale) / 64 + 2;
+        _cell_bbox.lr.x = FT_MulFix(_face->bbox.xMax, _face->size->metrics.x_scale) / 64 + 2;
+        _cell_bbox.lr.y = FT_MulFix(_face->bbox.yMin, _face->size->metrics.y_scale) / 64 - 2;
+
+        // get newline height
+        _line_height = FT_MulFix(_face->height, _face->size->metrics.y_scale) / 64;
+
+        _tex_width = _cell_bbox.width() * 16;
+        _tex_height = _cell_bbox.height() * 16;
+
+        _page_map.clear();
     }
 
     void Font_sys::render_text(const std::string & utf8_input, const Color & color,

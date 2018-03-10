@@ -64,6 +64,15 @@ namespace textogl
             Static_text & operator=(Static_text && other);
             /// @}
 
+            /// Recreate text object with new Font_sys
+
+            /// Useful when Font_sys::resize has been called
+
+            /// @param font Font_sys object containing desired font. A pointer
+            ///        to this is stored internally, so the Font_sys object must
+            ///        remain valid for the life of the Static_text object
+            void set_font_sys(Font_sys & font);
+
             /// Recreate text object with new string
 
             /// @param utf8_input Text to render, in UTF-8 encoding. For best performance, normalize the string before rendering
@@ -77,8 +86,13 @@ namespace textogl
                             );
 
         private:
+
+            void rebuild(); ///< Rebuild text data
+
             Font_sys * _font; ///< Points to Font_sys chosen at construction.
                               ///< This object must remain valid for the whole lifetime of this Static_text object
+
+            std::string _text; ///< Text to render, in UTF-8 encoding.
 
             GLuint _vao; ///< OpenGL Vertex array object index
             GLuint _vbo; ///< OpenGL Vertex buffer object index

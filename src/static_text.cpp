@@ -25,23 +25,16 @@
 
 namespace textogl
 {
-    Static_text::Static_text(Font_sys & font, const std::string & utf8_input):
-        _font(&font)
+    Static_text::Static_text(Font_sys & font, const std::string & utf8_input): _font(&font),  _text(utf8_input)
     {
-        // build the text
-        std::vector<Vec2<float>> coords;
-        std::tie(coords, _coord_data, _text_box) = _font->build_text(utf8_input);
-
-        // set up buffer obj properties, load vertex data
         glGenVertexArrays(1, &_vao);
+        glBindVertexArray(_vao);
         glGenBuffers(1, &_vbo);
 
+        rebuild();
+        // set up buffer obj properties, load vertex data
+
         glBindVertexArray(_vao);
-        glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coords.size(),
-                coords.data(), GL_STATIC_DRAW);
-
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), NULL);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), (const GLvoid *)sizeof(Vec2<float>));
@@ -81,11 +74,23 @@ namespace textogl
         return *this;
     }
 
+    void Static_text::set_font_sys(Font_sys & font)
+    {
+        _font = &font;
+        rebuild();
+    }
+
     void Static_text::set_text(const std::string & utf8_input)
+    {
+        _text = utf8_input;
+        rebuild();
+    }
+
+    void Static_text::rebuild()
     {
         // build the text
         std::vector<Vec2<float>> coords;
-        std::tie(coords, _coord_data, _text_box) = _font->build_text(utf8_input);
+        std::tie(coords, _coord_data, _text_box) = _font->build_text(_text);
 
         glBindVertexArray(_vao);
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);

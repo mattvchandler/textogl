@@ -168,11 +168,6 @@ namespace textogl
             throw std::runtime_error("No unicode charmap in font file: " + font_path);
         }
 
-        if(FT_Set_Char_Size(_face, font_size * 64, font_size * 64, h_dpi, v_dpi) != FT_Err_Ok)
-        {
-            throw std::runtime_error("Can't set font size: " + std::to_string(font_size));
-        }
-
         try
         {
             resize(font_size, v_dpi, h_dpi);

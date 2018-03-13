@@ -8,6 +8,7 @@ endif()
 
 include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/../include
+    ${CMAKE_CURRENT_LIST_DIR}
     ${PROJECT_BINARY_DIR}
     ${FREETYPE_INCLUDE_DIRS}
     ${OPENGL_INCLUDE_DIRS}

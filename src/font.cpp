@@ -1,5 +1,5 @@
 /// @file
-/// @brief Font loading and text display
+/// @brief Font loading and text display implementation
 
 // Copyright 2017 Matthew Chandler
 
@@ -21,15 +21,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "textogl/font.hpp"
+#include "font_impl.hpp"
 
 #include <iomanip>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <system_error>
-#include <tuple>
-#include <vector>
 
 /// Convert a UTF-8 string to a UTF-32 string
 
@@ -131,6 +129,10 @@ std::u32string utf8_to_utf32(const std::string & utf8)
 namespace textogl
 {
     Font_sys::Font_sys(const std::string & font_path, const unsigned int font_size,
+            const unsigned int v_dpi, const unsigned int h_dpi):
+        pimpl(new Impl(font_path, font_size, v_dpi, h_dpi), [](Impl * impl) { delete impl; })
+    {}
+    Font_sys::Impl::Impl(const std::string & font_path, const unsigned int font_size,
             const unsigned int v_dpi, const unsigned int h_dpi)
     {
         // load freetype, and text shader - only once
@@ -209,7 +211,7 @@ namespace textogl
         glUseProgram(0);
     }
 
-    Font_sys::~Font_sys()
+    Font_sys::Impl::~Impl()
     {
         FT_Done_Face(_face);
 
@@ -228,7 +230,7 @@ namespace textogl
         }
     }
 
-    Font_sys::Font_sys(Font_sys && other):
+    Font_sys::Impl::Impl(Impl && other):
         _face(other._face),
         _has_kerning_info(other._has_kerning_info),
         _cell_bbox(std::move(other._cell_bbox)),
@@ -243,7 +245,7 @@ namespace textogl
         other._vao = other._vbo = 0;
         ++_common_ref_cnt;
     }
-    Font_sys & Font_sys::operator=(Font_sys && other)
+    Font_sys::Impl & Font_sys::Impl::operator=(Impl && other)
     {
         if(this != &other)
         {
@@ -264,6 +266,10 @@ namespace textogl
     }
 
     void Font_sys::resize(const unsigned int font_size, const unsigned int v_dpi, const unsigned int h_dpi)
+    {
+        pimpl->resize(font_size, v_dpi, h_dpi);
+    }
+    void Font_sys::Impl::resize(const unsigned int font_size, const unsigned int v_dpi, const unsigned int h_dpi)
     {
         // select font size
         if(FT_Set_Char_Size(_face, font_size * 64, font_size * 64, h_dpi, v_dpi) != FT_Err_Ok)
@@ -288,10 +294,15 @@ namespace textogl
     void Font_sys::render_text(const std::string & utf8_input, const Color & color,
             const Vec2<float> & win_size, const Vec2<float> & pos, const int align_flags)
     {
+        pimpl->render_text(utf8_input, color, win_size, pos, align_flags);
+    }
+    void Font_sys::Impl::render_text(const std::string & utf8_input, const Color & color,
+            const Vec2<float> & win_size, const Vec2<float> & pos, const int align_flags)
+    {
         // build text buffer objs
         std::vector<Vec2<float>> coords;
-        std::vector<Font_sys::Coord_data> coord_data;
-        Font_sys::Bbox<float> text_box;
+        std::vector<Font_sys::Impl::Coord_data> coord_data;
+        Font_sys::Impl::Bbox<float> text_box;
         std::tie(coords, coord_data, text_box) = build_text(utf8_input);
 
         glBindVertexArray(_vao);
@@ -305,7 +316,7 @@ namespace textogl
         render_text_common(color, win_size, pos, align_flags, text_box, coord_data, _vao);
     }
 
-    void Font_sys::render_text_common(const Color & color, const Vec2<float> & win_size,
+    void Font_sys::Impl::render_text_common(const Color & color, const Vec2<float> & win_size,
             const Vec2<float> & pos, const int align_flags, const Bbox<float> & text_box,
             const std::vector<Coord_data> & coord_data, GLuint vao)
     {
@@ -368,7 +379,7 @@ namespace textogl
         glBindVertexArray(0);
     }
 
-    std::unordered_map<uint32_t, Font_sys::Page>::iterator Font_sys::load_page(const uint32_t page_no)
+    std::unordered_map<uint32_t, Font_sys::Impl::Page>::iterator Font_sys::Impl::load_page(const uint32_t page_no)
     {
         // this assumes the page has not been created yet
         auto page_i = _page_map.emplace(std::make_pair(page_no, Page())).first;
@@ -440,8 +451,8 @@ namespace textogl
         return page_i;
     }
 
-    std::tuple<std::vector<Vec2<float>>, std::vector<Font_sys::Coord_data>, Font_sys::Bbox<float>>
-    Font_sys::build_text(const std::string & utf8_input)
+    std::tuple<std::vector<Vec2<float>>, std::vector<Font_sys::Impl::Coord_data>, Font_sys::Impl::Bbox<float>>
+    Font_sys::Impl::build_text(const std::string & utf8_input)
     {
         Vec2<float> pen{0.0f, 0.0f};
 
@@ -478,8 +489,8 @@ namespace textogl
                 page_i = load_page(code_pt >> 8);
             }
 
-            Font_sys::Page & page = page_i->second;
-            Font_sys::Char_info & c = page.char_info[code_pt & 0xFF];
+            Font_sys::Impl::Page & page = page_i->second;
+            Font_sys::Impl::Char_info & c = page.char_info[code_pt & 0xFF];
 
             // add kerning if necessary
             if(_has_kerning_info && prev_glyph_i && c.glyph_i)
@@ -549,13 +560,13 @@ namespace textogl
 
         // reorganize texture data into a contiguous array
         std::vector<Vec2<float>> coords;
-        std::vector<Font_sys::Coord_data> coord_data;
+        std::vector<Font_sys::Impl::Coord_data> coord_data;
 
 
         for(const auto & page: screen_and_tex_coords)
         {
             coord_data.emplace_back();
-            Font_sys::Coord_data & c = coord_data.back();
+            Font_sys::Impl::Coord_data & c = coord_data.back();
 
             c.page_no = page.first;
 

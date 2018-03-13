@@ -18,6 +18,8 @@
 
 // NOTE: The shader source itself will be filled in by CMake
 
+#include <GL/glew.h>
+
 const GLchar * const vert_shader_src = R"(
 @VERT_SHADER@
 )";

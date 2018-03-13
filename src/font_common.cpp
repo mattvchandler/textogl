@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "textogl/font.hpp"
+#include "font_impl.hpp"
 
 #include <system_error>
 
@@ -30,7 +30,7 @@
 
 namespace textogl
 {
-    Font_sys::Font_common::Font_common()
+    Font_sys::Impl::Font_common::Font_common()
     {
         FT_Error err = FT_Init_FreeType(&ft_lib);
         if(err != FT_Err_Ok)
@@ -114,12 +114,12 @@ namespace textogl
         }
     }
 
-    Font_sys::Font_common::~Font_common()
+    Font_sys::Impl::Font_common::~Font_common()
     {
         FT_Done_FreeType(ft_lib);
         glDeleteProgram(prog);
     }
 
-    unsigned int Font_sys::_common_ref_cnt = 0;
-    std::unique_ptr<Font_sys::Font_common> Font_sys::_common_data;
+    unsigned int Font_sys::Impl::_common_ref_cnt = 0;
+    std::unique_ptr<Font_sys::Impl::Font_common> Font_sys::Impl::_common_data;
 }

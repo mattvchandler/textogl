@@ -116,6 +116,19 @@ namespace textogl
                     const unsigned int v_dpi = 96, ///< Font vertical DPI
                     const unsigned int h_dpi = 96  ///< Font horizontal DPI
                     );
+        ~Font_sys() = default;
+
+        /// @name Non-copyable
+        /// @{
+        Font_sys(const Font_sys &) = delete;
+        Font_sys & operator=(const Font_sys &) = delete;
+        /// @}
+
+        /// @name Movable
+        /// @{
+        Font_sys(Font_sys &&) = default;
+        Font_sys & operator=(Font_sys &&) = default;
+        /// @}
 
         /// Resize font
 
@@ -142,7 +155,7 @@ namespace textogl
 
     private:
         struct Impl; ///< Private internal implementation
-        std::unique_ptr<Impl, void (*)(Impl *)> pimpl; ///< Pointer to private internal implementation
+        std::shared_ptr<Impl> pimpl; ///< Pointer to private internal implementation
 
         /// @cond INTERNAL
         friend class Static_text;

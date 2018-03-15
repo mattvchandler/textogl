@@ -79,9 +79,7 @@ namespace textogl
         void rebuild(); ///< Rebuild text data
 
         /// Points to Font_sys chosen at construction.
-
-        /// This object must remain valid for the whole lifetime of this Static_text object
-        Font_sys::Impl * _font;
+        std::shared_ptr<Font_sys::Impl> _font;
 
         std::string _text; ///< Text to render, in UTF-8 encoding.
 
@@ -93,7 +91,7 @@ namespace textogl
     };
 
     Static_text::Static_text(Font_sys & font, const std::string & utf8_input): pimpl(new Impl(font, utf8_input), [](Impl * impl){ delete impl; }) {}
-    Static_text::Impl::Impl(Font_sys & font, const std::string & utf8_input): _font(font.pimpl.get()),  _text(utf8_input)
+    Static_text::Impl::Impl(Font_sys & font, const std::string & utf8_input): _font(font.pimpl),  _text(utf8_input)
     {
         glGenVertexArrays(1, &_vao);
         glBindVertexArray(_vao);
@@ -151,7 +149,7 @@ namespace textogl
     }
     void Static_text::Impl::set_font_sys(Font_sys & font)
     {
-        _font = font.pimpl.get();
+        _font = font.pimpl;
         rebuild();
     }
 

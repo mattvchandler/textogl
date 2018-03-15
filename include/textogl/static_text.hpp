@@ -43,9 +43,10 @@ namespace textogl
     {
     public:
         /// Create and build text object
-        /// @param font Font_sys object containing desired font. A pointer
-        ///        to this is stored internally, so the Font_sys object must
-        ///        remain valid for the life of the Static_text object
+        /// @param font Font_sys object containing desired font. This Static_text
+        ///        will retain a shared_ptr to the Font_sys, but will not automatically
+        ///        rebuild when Font_sys::resize is called. Use Static_text::set_font_sys
+        //         to rebuild in that case.
         /// @param utf8_input Text to render, in UTF-8 encoding. For best performance, normalize the string before rendering
         Static_text(Font_sys & font,
                     const std::string & utf8_input
@@ -53,11 +54,9 @@ namespace textogl
 
         /// Recreate text object with new Font_sys
 
-        /// Useful when Font_sys::resize has been called
+        /// When Font_sys::resize has been called, call this to rebuild this Static_text with the new size
 
-        /// @param font Font_sys object containing desired font. A pointer
-        ///        to this is stored internally, so the Font_sys object must
-        ///        remain valid for the life of the Static_text object
+        /// @param font Font_sys object containing desired font.
         void set_font_sys(Font_sys & font);
 
         /// Recreate text object with new string

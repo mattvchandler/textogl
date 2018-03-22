@@ -23,6 +23,7 @@
 
 #include "font_impl.hpp"
 
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -135,12 +136,40 @@ namespace textogl
     Font_sys::Impl::Impl(const std::string & font_path, const unsigned int font_size,
             const unsigned int v_dpi, const unsigned int h_dpi)
     {
+        std::ifstream font_file(font_path, std::ios_base::binary);
+        _font_data.insert(std::begin(_font_data), std::istreambuf_iterator<char>(font_file), std::istreambuf_iterator<char>());
+        init(font_size, v_dpi, h_dpi);
+    }
+
+    Font_sys::Font_sys(const std::vector<unsigned char> & font_data, const unsigned int font_size,
+            const unsigned int v_dpi, const unsigned int h_dpi):
+        pimpl(new Impl(font_data, font_size, v_dpi, h_dpi), [](Impl * impl) { delete impl; })
+    {}
+    Font_sys::Impl::Impl(const std::vector<unsigned char> & font_data, const unsigned int font_size,
+            const unsigned int v_dpi, const unsigned int h_dpi): _font_data(font_data)
+    {
+        init(font_size, v_dpi, h_dpi);
+    }
+
+    void Font_sys::Impl::init(const unsigned int font_size, const unsigned int v_dpi, const unsigned int h_dpi)
+    {
         // load freetype, and text shader - only once
         if(_common_ref_cnt == 0)
             _common_data.reset(new Font_common);
 
         // open the font file
-        FT_Error err = FT_New_Face(_common_data->ft_lib, font_path.c_str(), 0, &_face);
+        FT_Open_Args args
+        {
+            FT_OPEN_MEMORY,
+            _font_data.data(),
+            static_cast<FT_Long>(_font_data.size()),
+            nullptr,
+            nullptr,
+            nullptr,
+            0,
+            nullptr
+        };
+        FT_Error err = FT_Open_Face(_common_data->ft_lib, &args, 0, &_face);
 
         if(err != FT_Err_Ok)
         {
@@ -149,11 +178,11 @@ namespace textogl
 
             if(err == FT_Err_Unknown_File_Format)
             {
-                throw std::system_error(err, std::system_category(), "Unknown format for font file: " + font_path);
+                throw std::system_error(err, std::system_category(), "Unknown format for font file");
             }
             else
             {
-                throw std::ios_base::failure("Error reading font file: " + font_path);
+                throw std::ios_base::failure("Error reading font file");
             }
         }
 
@@ -165,7 +194,7 @@ namespace textogl
             if(_common_ref_cnt == 0)
                 _common_data.reset();
 
-            throw std::runtime_error("No unicode charmap in font file: " + font_path);
+            throw std::runtime_error("No unicode charmap in font file");
         }
 
         try

@@ -26,6 +26,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #ifdef USE_GLM
 #include <glm/glm.hpp>
@@ -112,10 +113,16 @@ namespace textogl
     public:
         /// Load a font file at a specified size
         Font_sys(const std::string & font_path, ///< Path to font file to use
-                    const unsigned int font_size,  ///< Font size (in points)
-                    const unsigned int v_dpi = 96, ///< Font vertical DPI
-                    const unsigned int h_dpi = 96  ///< Font horizontal DPI
-                    );
+                 const unsigned int font_size,  ///< Font size (in points)
+                 const unsigned int v_dpi = 96, ///< Font vertical DPI
+                 const unsigned int h_dpi = 96  ///< Font horizontal DPI
+                 );
+        /// Load a font at a specified size from memory
+        Font_sys(const std::vector<unsigned char> & font_data, ///< Font file data (in memory)
+                 const unsigned int font_size,                 ///< Font size (in points)
+                 const unsigned int v_dpi = 96,                ///< Font vertical DPI
+                 const unsigned int h_dpi = 96                 ///< Font horizontal DPI
+                 );
         ~Font_sys() = default;
 
         /// @name Non-copyable

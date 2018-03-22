@@ -28,7 +28,6 @@
 
 #include <tuple>
 #include <unordered_map>
-#include <vector>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -49,10 +48,16 @@ namespace textogl
     {
         /// Load a font file at a specified size
         Impl(const std::string & font_path,       ///< Path to font file to use
-                    const unsigned int font_size, ///< Font size (in points)
-                    const unsigned int v_dpi,     ///< Font vertical DPI
-                    const unsigned int h_dpi      ///< Font horizontal DPI
-                    );
+             const unsigned int font_size,        ///< Font size (in points)
+             const unsigned int v_dpi,            ///< Font vertical DPI
+             const unsigned int h_dpi             ///< Font horizontal DPI
+             );
+        /// Load a font at a specified size from memory
+        Impl(const std::vector<unsigned char> & font_data, ///< Font file data (in memory)
+             const unsigned int font_size,                 ///< Font size (in points)
+             const unsigned int v_dpi,                     ///< Font vertical DPI
+             const unsigned int h_dpi                      ///< Font horizontal DPI
+             );
         ~Impl();
 
         /// @name Non-copyable
@@ -66,6 +71,12 @@ namespace textogl
         Impl(Impl &&);
         Impl & operator=(Impl &&);
         /// @}
+
+        /// Common initialization code
+        void init(const unsigned int font_size,  ///< Font size (in points)
+                  const unsigned int v_dpi = 96, ///< Font vertical DPI
+                  const unsigned int h_dpi = 96  ///< Font horizontal DPI
+                  );
 
         /// Resize font
 
@@ -205,10 +216,11 @@ namespace textogl
 
         /// @name Font data
         /// @{
-        FT_Face _face;          ///< Font face. [See Freetype documentation](https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_Face)
-        bool _has_kerning_info; ///< \c true if the font has kerning information available
-        Bbox<int> _cell_bbox;   ///< Bounding box representing maximum extents of a glyph
-        int _line_height;       ///< Spacing between baselines for each line of text
+        std::vector<unsigned char> _font_data; ///< Font file data
+        FT_Face _face;                         ///< Font face. [See Freetype documentation](https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_Face)
+        bool _has_kerning_info;                ///< \c true if the font has kerning information available
+        Bbox<int> _cell_bbox;                  ///< Bounding box representing maximum extents of a glyph
+        int _line_height;                      ///< Spacing between baselines for each line of text
         /// @}
 
         /// @name Texture size

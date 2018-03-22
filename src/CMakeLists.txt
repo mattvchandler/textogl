@@ -36,18 +36,18 @@ target_link_libraries(${PROJECT_NAME}
 file(GENERATE OUTPUT ${PROJECT_BINARY_DIR}/shaders.cmake CONTENT "
     file(READ ${CMAKE_CURRENT_LIST_DIR}/shaders/font.vert VERT_SHADER)
     file(READ ${CMAKE_CURRENT_LIST_DIR}/shaders/font.frag FRAG_SHADER)
-    configure_file(${CMAKE_CURRENT_LIST_DIR}/shaders/shaders.cpp.in
-        ${PROJECT_BINARY_DIR}/shaders.cpp)
+    configure_file(${CMAKE_CURRENT_LIST_DIR}/shaders/shaders.inl.in
+        ${PROJECT_BINARY_DIR}/shaders.inl)
    ")
 
 add_custom_target(shaders
     COMMAND ${CMAKE_COMMAND} -P ${PROJECT_BINARY_DIR}/shaders.cmake
     DEPENDS
-        ${CMAKE_CURRENT_LIST_DIR}/shaders/shaders.cpp.in
+        ${CMAKE_CURRENT_LIST_DIR}/shaders/shaders.inl.in
         ${CMAKE_CURRENT_LIST_DIR}/shaders/font.vert
         ${CMAKE_CURRENT_LIST_DIR}/shaders/font.frag
     BYPRODUCTS
-        ${PROJECT_BINARY_DIR}/shaders.cpp
+        ${PROJECT_BINARY_DIR}/shaders.inl
     COMMENT "Including shader source files"
     )
 

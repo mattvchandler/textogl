@@ -26,7 +26,7 @@
 #include <system_error>
 
 // include shader source strings (this file is assembled from shader files by CMake)
-#include "shaders.cpp"
+#include "shaders.inl"
 
 namespace textogl
 {

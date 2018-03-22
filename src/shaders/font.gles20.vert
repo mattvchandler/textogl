@@ -16,18 +16,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// NOTE: The shader source itself will be filled in by CMake
+attribute vec2 vert_pos;
+attribute vec2 vert_tex_coords;
 
-#ifdef USE_OPENGL_ES
-#include <GLES2/gl2.h>
-#else
-#include <GL/glew.h>
-#endif
+uniform vec2 start_offset;
+uniform vec2 win_size;
 
-const GLchar * const vert_shader_src = R"(
-@VERT_SHADER@
-)";
+varying vec2 tex_coord;
 
-const GLchar * const frag_shader_src = R"(
-@FRAG_SHADER@
-)";
+void main()
+{
+    tex_coord = vert_tex_coords;
+    // convert pixel coords to screen coords
+    vec2 pix_pos = vert_pos + start_offset;
+    gl_Position = vec4(pix_pos.x * 2.0 / win_size.x - 1.0,
+        1.0 - pix_pos.y * 2.0 / win_size.y, 0.0, 1.0);
+}

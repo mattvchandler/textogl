@@ -33,7 +33,11 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#ifdef USE_OPENGL_ES
+#include <GLES2/gl2.h>
+#else
 #include <GL/glew.h>
+#endif
 
 /// @cond INTERNAL
 
@@ -180,7 +184,10 @@ namespace textogl
                                 const int align_flags,                      ///< Text Alignment. Should be #Text_origin flags bitwise-OR'd together
                                 const Bbox<float> & text_box,               ///< Text's bounding box
                                 const std::vector<Coord_data> & coord_data, ///< Pre-calculated coordinate data as returned by \ref build_text
-                                GLuint vao                                  ///< OpenGL vertex array object
+#ifndef USE_OPENGL_ES
+                                GLuint vao,                                 ///< OpenGL vertex array object
+#endif
+                                GLuint vbo                                  ///< OpenGL vertex buffer object
                         );
 
         /// Build buffer of quads for and coordinate data for text display
@@ -215,7 +222,9 @@ namespace textogl
 
         std::unordered_map<uint32_t, Page> _page_map; ///< Font pages
 
+#ifndef USE_OPENGL_ES
         GLuint _vao; ///< OpenGL Vertex array object index
+#endif
         GLuint _vbo; ///< OpenGL Vertex buffer object index
     };
 }

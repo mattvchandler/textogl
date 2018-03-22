@@ -16,18 +16,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// NOTE: The shader source itself will be filled in by CMake
+precision mediump float;
 
-#ifdef USE_OPENGL_ES
-#include <GLES2/gl2.h>
-#else
-#include <GL/glew.h>
-#endif
+varying vec2 tex_coord;
 
-const GLchar * const vert_shader_src = R"(
-@VERT_SHADER@
-)";
+uniform sampler2D font_page;
+uniform vec4 color;
 
-const GLchar * const frag_shader_src = R"(
-@FRAG_SHADER@
-)";
+void main()
+{
+    // get alpha from font texture
+    gl_FragColor = vec4(color.rgb, color.a * texture2D(font_page, tex_coord).a);
+}

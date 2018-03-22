@@ -26,7 +26,12 @@
 
 #include <vector>
 
+#ifdef USE_OPENGL_ES
+#include <GLES2/gl2.h>
+#else
 #include <GL/glew.h>
+#endif
+
 
 namespace textogl
 {
@@ -83,7 +88,9 @@ namespace textogl
 
         std::string _text; ///< Text to render, in UTF-8 encoding.
 
+#ifndef USE_OPENGL_ES
         GLuint _vao; ///< OpenGL Vertex array object index
+#endif
         GLuint _vbo; ///< OpenGL Vertex buffer object index
 
         std::vector<Font_sys::Impl::Coord_data> _coord_data; ///< Start and end indexs into \ref _vbo
@@ -93,14 +100,17 @@ namespace textogl
     Static_text::Static_text(Font_sys & font, const std::string & utf8_input): pimpl(new Impl(font, utf8_input), [](Impl * impl){ delete impl; }) {}
     Static_text::Impl::Impl(Font_sys & font, const std::string & utf8_input): _font(font.pimpl),  _text(utf8_input)
     {
+#ifndef USE_OPENGL_ES
         glGenVertexArrays(1, &_vao);
         glBindVertexArray(_vao);
+#endif
         glGenBuffers(1, &_vbo);
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
         // set up buffer obj properties, load vertex data
         rebuild();
 
+#ifndef USE_OPENGL_ES
         glBindVertexArray(_vao);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), NULL);
         glEnableVertexAttribArray(0);
@@ -108,24 +118,32 @@ namespace textogl
         glEnableVertexAttribArray(1);
 
         glBindVertexArray(0);
+#endif
     }
 
     Static_text::Impl::~Impl()
     {
         // destroy VAO/VBO
         glDeleteBuffers(1, &_vbo);
+#ifndef USE_OPENGL_ES
         glDeleteVertexArrays(1, &_vao);
+#endif
     }
 
     Static_text::Impl::Impl(Impl && other):
         _font(other._font),
         _text(other._text),
+#ifndef USE_OPENGL_ES
         _vao(other._vao),
+#endif
         _vbo(other._vbo),
         _coord_data(std::move(other._coord_data)),
         _text_box(std::move(other._text_box))
     {
-        other._vao = other._vbo = 0;
+#ifndef USE_OPENGL_ES
+        other._vao = 0;
+#endif
+        other._vbo = 0;
     }
     Static_text::Impl & Static_text::Impl::operator=(Impl && other)
     {
@@ -133,12 +151,17 @@ namespace textogl
         {
             _font = other._font;
             _text = other._text;
+#ifndef USE_OPENGL_ES
             _vao = other._vao;
+#endif
             _vbo = other._vbo;
             _coord_data = std::move(other._coord_data);
             _text_box = std::move(other._text_box);
 
-            other._vao = other._vbo = 0;
+#ifndef USE_OPENGL_ES
+            other._vao = 0;
+#endif
+            other._vbo = 0;
         }
         return *this;
     }
@@ -171,7 +194,11 @@ namespace textogl
     void Static_text::Impl::render_text(const Color & color, const Vec2<float> & win_size,
             const Vec2<float> & pos, const int align_flags)
     {
-        _font->render_text_common(color, win_size, pos, align_flags, _text_box, _coord_data, _vao);
+        _font->render_text_common(color, win_size, pos, align_flags, _text_box, _coord_data,
+#ifndef USE_OPENGL_ES
+             _vao,
+#endif
+            _vbo);
     }
 
     void Static_text::Impl::rebuild()
@@ -180,13 +207,22 @@ namespace textogl
         std::vector<Vec2<float>> coords;
         std::tie(coords, _coord_data, _text_box) = _font->build_text(_text);
 
-        glBindVertexArray(_vao);
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+#ifndef USE_OPENGL_ES
+        glBindVertexArray(_vao);
+#else
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), NULL);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), (const GLvoid *)sizeof(Vec2<float>));
+        glEnableVertexAttribArray(1);
+#endif
 
         // reload vertex data
         glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2<float>) * coords.size(), coords.data(), GL_STATIC_DRAW);
 
+#ifndef USE_OPENGL_ES
         glBindVertexArray(0);
+#endif
     }
 
 }

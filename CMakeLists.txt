@@ -30,8 +30,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModu
 option(USE_GLM "Search for GLM and use that instead of internal Color / Vec2" ON)
 
 add_subdirectory(src)
-# TODO: make demo optional, clean it up
-add_subdirectory(demo)
+
+option(BUILD_DEMO "build a demo / test program" OFF)
+if(BUILD_DEMO)
+    add_subdirectory(demo)
+endif()
 
 # Doxygen documentation
 option(TEXTOGL_GEN_DOCS "Generate 'doc' target" ON)

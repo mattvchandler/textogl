@@ -86,11 +86,39 @@ namespace textogl
         /// If the text will not change frequently, use a Static_text object
         /// instead
         void render_text(const std::string & utf8_input, ///< Text to render, in UTF-8 encoding. For best performance, normalize the string before rendering
-                            const Color & color,            ///< Text Color
-                            const Vec2<float> & win_size,   ///< Window dimensions. A Vec2 with X = width and Y = height
-                            const Vec2<float> & pos,        ///< Render position, in screen pixels
-                            const int align_flags = 0       ///< Text Alignment. Should be #Text_origin flags bitwise-OR'd together
-                            );
+                         const Color & color,            ///< Text Color
+                         const Vec2<float> & win_size,   ///< Window dimensions. A Vec2 with X = width and Y = height
+                         const Vec2<float> & pos,        ///< Render position, in screen pixels
+                         const int align_flags = 0       ///< Text Alignment. Should be #Text_origin flags bitwise-OR'd together
+                         );
+
+        /// Render given text, with rotatation
+
+        /// Renders the text supplied in utf8_input parameter
+        /// @note This will rebuild the OpenGL primitives each call.
+        /// If the text will not change frequently, use a Static_text object
+        /// instead
+        void render_text_rotate(const std::string & utf8_input, ///< Text to render, in UTF-8 encoding. For best performance, normalize the string before rendering
+                                const Color & color,            ///< Text Color
+                                const Vec2<float> & win_size,   ///< Window dimensions. A Vec2 with X = width and Y = height
+                                const Vec2<float> & pos,        ///< Render position, in screen pixels
+                                const float rotation,           ///< Clockwise text rotation (in radians) around origin as defined in align_flags. 0 is vertical
+                                const int align_flags = 0       ///< Text Alignment. Should be #Text_origin flags bitwise-OR'd together
+                                );
+
+        /// Render given text, using a model view projection matrix
+
+        /// Renders the text supplied in utf8_input parameter, using a model view projection matrix
+        /// @note This will rebuild the OpenGL primitives each call.
+        /// If the text will not change frequently, use a Static_text object
+        /// instead
+        void render_text_mat(const std::string & utf8_input,       ///< Text to render, in UTF-8 encoding. For best performance, normalize the string before rendering
+                             const Color & color,                  ///< Text Color
+                             /// Model view projection matrix.
+                             /// The text will be rendered as quads, one for each glyph, with vertex coordinates centered on the baselines and sized in pixels.
+                             /// This matrix will be used to transform that geometry
+                             const Mat4<float> & model_view_projection
+                             );
 
     private:
         struct Impl; ///< Private internal implementation

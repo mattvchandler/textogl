@@ -28,74 +28,13 @@
 #include <string>
 #include <vector>
 
-#ifdef USE_GLM
-#include <glm/glm.hpp>
-#endif
-
-/// OpenGL Font rendering types
+#include "types.hpp"
 
 /// @ingroup textogl
 namespace textogl
 {
-    /// %Color vector
-
-    /// Simple RGBA color vector
-
-    /// @note If GLM is available, this is instead an alias for glm::vec4
-#ifdef USE_GLM
-    using Color = glm::vec4;
-#else
-    struct Color
-    {
-        float r; ///< Red component value
-        float g; ///< Green component value
-        float b; ///< Blue component value
-        float a; ///< Alpha component value
-
-        /// Access component by index
-
-        /// To pass color to OpenGL, do: <tt>&color[0]</tt>
-        /// @{
-        float & operator[](std::size_t i) { return (&r)[i]; }
-        const float & operator[](std::size_t i) const { return (&r)[i]; }
-        /// @}
-    };
-#endif
-
-    namespace detail
-    {
-        /// 2D Vector
-        template<typename T>
-        struct Vec2
-        {
-            T x; ///< X component
-            T y; ///< Y component
-
-            /// Access component by index
-
-            /// To pass vector to OpenGL, do: <tt>&vec2[0]</tt>
-            /// @{
-            float & operator[](std::size_t i) { return (&x)[i]; }
-            const float & operator[](std::size_t i) const { return (&x)[i]; }
-            /// @}
-        };
-
-        // for template alias specialization
-        template<typename T> struct Vec2_t {  using type = Vec2<T>; };
-#ifdef USE_GLM
-        // specialize to glm types
-        template<> struct Vec2_t<float>        { using type = glm::vec2; };
-        template<> struct Vec2_t<double>       { using type = glm::dvec2; };
-        template<> struct Vec2_t<int>          { using type = glm::ivec2; };
-        template<> struct Vec2_t<unsigned int> { using type = glm::uvec2; };
-#endif
-    }
-    /// 2D Vector
-    /// @note If GLM is available, this is an alias for glm::vec2 / dvec2 / ...
-    template<typename T> using Vec2 = typename detail::Vec2_t<T>::type;
-
     /// Text origin specification
-    enum Text_origin
+    enum Text_origin: int
     {
         ORIGIN_HORIZ_BASELINE = 0x00, ///< Horizontal text origin at baseline
         ORIGIN_HORIZ_LEFT     = 0x01, ///< Horizontal text origin at left edge

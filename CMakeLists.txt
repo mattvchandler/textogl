@@ -3,7 +3,7 @@ project(textogl)
 
 set(TITLE "Textogl")
 set(AUTHOR "Matthew Chandler <tardarsauce@gmail.com>")
-set(COPYRIGHT "2018 Matthew Chandler")
+set(COPYRIGHT "2019 Matthew Chandler")
 set(SUMMARY "OpenGL Text renderer")
 set(WEBSITE "http://github.com/mattvchandler/${PROJECT_NAME}")
 

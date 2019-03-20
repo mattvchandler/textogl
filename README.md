@@ -32,7 +32,7 @@ Textogl uses CMake to build
     # make install
 
 #### Debian & derivatives
-Sqlitepp is configured to generate a .deb package file. To do so, substitute the
+Textogl is configured to generate a .deb package file. To do so, substitute the
 above with the following:
 
     $ mkdir build && cd build

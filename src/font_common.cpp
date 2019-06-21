@@ -128,6 +128,6 @@ namespace textogl
         glDeleteProgram(prog);
     }
 
-    unsigned int Font_sys::Impl::_common_ref_cnt = 0;
-    std::unique_ptr<Font_sys::Impl::Font_common> Font_sys::Impl::_common_data;
+    unsigned int Font_sys::Impl::common_ref_cnt_ = 0;
+    std::unique_ptr<Font_sys::Impl::Font_common> Font_sys::Impl::common_data_;
 }

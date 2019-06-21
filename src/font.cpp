@@ -172,16 +172,16 @@ namespace textogl
     void Font_sys::Impl::init(FT_Open_Args & args, const unsigned int font_size)
     {
         // load freetype, and text shader - only once
-        if(_common_ref_cnt == 0)
-            _common_data.reset(new Font_common);
+        if(common_ref_cnt_ == 0)
+            common_data_.reset(new Font_common);
 
         // open the font file
-        FT_Error err = FT_Open_Face(_common_data->ft_lib, &args, 0, &_face);
+        FT_Error err = FT_Open_Face(common_data_->ft_lib, &args, 0, &face_);
 
         if(err != FT_Err_Ok)
         {
-            if(_common_ref_cnt == 0)
-                _common_data.reset();
+            if(common_ref_cnt_ == 0)
+                common_data_.reset();
 
             if(err == FT_Err_Unknown_File_Format)
             {
@@ -194,12 +194,12 @@ namespace textogl
         }
 
         // select unicode charmap (should be default for most fonts)
-        if(FT_Select_Charmap(_face, FT_ENCODING_UNICODE) != FT_Err_Ok)
+        if(FT_Select_Charmap(face_, FT_ENCODING_UNICODE) != FT_Err_Ok)
         {
-            FT_Done_Face(_face);
+            FT_Done_Face(face_);
 
-            if(_common_ref_cnt == 0)
-                _common_data.reset();
+            if(common_ref_cnt_ == 0)
+                common_data_.reset();
 
             throw std::runtime_error("No unicode charmap in font file");
         }
@@ -210,25 +210,25 @@ namespace textogl
         }
         catch(std::runtime_error &)
         {
-            FT_Done_Face(_face);
+            FT_Done_Face(face_);
 
-            if(_common_ref_cnt == 0)
-                _common_data.reset();
+            if(common_ref_cnt_ == 0)
+                common_data_.reset();
 
             throw;
         }
 
         // we're not going to throw now, so increment library ref count
-        ++_common_ref_cnt;
+        ++common_ref_cnt_;
 
         // create and set up vertex array and buffer
 #ifndef USE_OPENGL_ES
-        glGenVertexArrays(1, &_vao);
-        glBindVertexArray(_vao);
+        glGenVertexArrays(1, &vao_);
+        glBindVertexArray(vao_);
 #endif
 
-        glGenBuffers(1, &_vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+        glGenBuffers(1, &vbo_);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 
 #ifndef USE_OPENGL_ES
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), NULL);
@@ -239,77 +239,77 @@ namespace textogl
 #endif
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_max_tu_count);
-        _max_tu_count--;
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_tu_count_);
+        max_tu_count_--;
 
         // get shader uniform locations
-        glUseProgram(_common_data->prog);
-        glUniform1i(_common_data->uniform_locations["font_page"], _max_tu_count);
+        glUseProgram(common_data_->prog);
+        glUniform1i(common_data_->uniform_locations["font_page"], max_tu_count_);
         glUseProgram(0);
     }
 
     Font_sys::Impl::~Impl()
     {
-        FT_Done_Face(_face);
+        FT_Done_Face(face_);
 
         // only deallocate shared libs if this is the last Font_sys obj
-        if(--_common_ref_cnt == 0)
-            _common_data.reset();
+        if(--common_ref_cnt_ == 0)
+            common_data_.reset();
 
         // destroy VAO/VBO
-        glDeleteBuffers(1, &_vbo);
+        glDeleteBuffers(1, &vbo_);
 #ifndef USE_OPENGL_ES
-        glDeleteVertexArrays(1, &_vao);
+        glDeleteVertexArrays(1, &vao_);
 #endif
 
         // destroy textures
-        for(auto & i: _page_map)
+        for(auto & i: page_map_)
         {
             glDeleteTextures(1, &i.first);
         }
     }
 
     Font_sys::Impl::Impl(Impl && other):
-        _face(other._face),
-        _has_kerning_info(other._has_kerning_info),
-        _cell_bbox(std::move(other._cell_bbox)),
-        _line_height(other._line_height),
-        _tex_width(other._tex_width),
-        _tex_height(other._tex_height),
-        _page_map(std::move(other._page_map)),
+        face_(other.face_),
+        has_kerning_info_(other.has_kerning_info_),
+        cell_bbox_(std::move(other.cell_bbox_)),
+        line_height_(other.line_height_),
+        tex_width_(other.tex_width_),
+        tex_height_(other.tex_height_),
+        page_map_(std::move(other.page_map_)),
 #ifndef USE_OPENGL_ES
-        _vao(other._vao),
+        vao_(other.vao_),
 #endif
-        _vbo(other._vbo)
+        vbo_(other.vbo_)
     {
-        other._face = nullptr;
+        other.face_ = nullptr;
 #ifndef USE_OPENGL_ES
-        other._vao = 0;
+        other.vao_ = 0;
 #endif
-        other._vbo = 0;
-        ++_common_ref_cnt;
+        other.vbo_ = 0;
+        ++common_ref_cnt_;
     }
     Font_sys::Impl & Font_sys::Impl::operator=(Impl && other)
     {
         if(this != &other)
         {
-            _face = other._face;
-            _has_kerning_info = other._has_kerning_info;
-            _cell_bbox = std::move(other._cell_bbox);
-            _line_height = other._line_height;
-            _tex_width = other._tex_width;
-            _tex_height = other._tex_height;
-            _page_map = std::move(other._page_map);
+            face_ = other.face_;
+            has_kerning_info_ = other.has_kerning_info_;
+            cell_bbox_ = std::move(other.cell_bbox_);
+            line_height_ = other.line_height_;
+            tex_width_ = other.tex_width_;
+            tex_height_ = other.tex_height_;
+            page_map_ = std::move(other.page_map_);
 #ifndef USE_OPENGL_ES
-            _vao = other._vao;
+            vao_ = other.vao_;
 #endif
-            _vbo = other._vbo;
+            vbo_ = other.vbo_;
 
-            other._face = nullptr;
+            other.face_ = nullptr;
 #ifndef USE_OPENGL_ES
-            other._vao = 0;
+            other.vao_ = 0;
 #endif
-            other._vbo = 0;
+            other.vbo_ = 0;
         }
         return *this;
     }
@@ -321,25 +321,25 @@ namespace textogl
     void Font_sys::Impl::resize(const unsigned int font_size)
     {
         // select font size
-        if(FT_Set_Pixel_Sizes(_face, 0, font_size) != FT_Err_Ok)
+        if(FT_Set_Pixel_Sizes(face_, 0, font_size) != FT_Err_Ok)
             throw std::runtime_error("Can't set font size: " + std::to_string(font_size));
 
         // get bounding box that will fit any glyph, plus 2 px padding
         // some glyphs overflow the reported box (antialiasing?) so at least one px is needed
-        _cell_bbox.ul.x = FT_MulFix(_face->bbox.xMin, _face->size->metrics.x_scale) / 64 - 2;
-        _cell_bbox.ul.y = FT_MulFix(_face->bbox.yMax, _face->size->metrics.y_scale) / 64 + 2;
-        _cell_bbox.lr.x = FT_MulFix(_face->bbox.xMax, _face->size->metrics.x_scale) / 64 + 2;
-        _cell_bbox.lr.y = FT_MulFix(_face->bbox.yMin, _face->size->metrics.y_scale) / 64 - 2;
+        cell_bbox_.ul.x = FT_MulFix(face_->bbox.xMin, face_->size->metrics.x_scale) / 64 - 2;
+        cell_bbox_.ul.y = FT_MulFix(face_->bbox.yMax, face_->size->metrics.y_scale) / 64 + 2;
+        cell_bbox_.lr.x = FT_MulFix(face_->bbox.xMax, face_->size->metrics.x_scale) / 64 + 2;
+        cell_bbox_.lr.y = FT_MulFix(face_->bbox.yMin, face_->size->metrics.y_scale) / 64 - 2;
 
         // get newline height
-        _line_height = FT_MulFix(_face->height, _face->size->metrics.y_scale) / 64;
+        line_height_ = FT_MulFix(face_->height, face_->size->metrics.y_scale) / 64;
 
-        _tex_width = _cell_bbox.width() * 16;
-        _tex_height = _cell_bbox.height() * 16;
+        tex_width_ = cell_bbox_.width() * 16;
+        tex_height_ = cell_bbox_.height() * 16;
 
-        _has_kerning_info = FT_HAS_KERNING(_face);
+        has_kerning_info_ = FT_HAS_KERNING(face_);
 
-        _page_map.clear();
+        page_map_.clear();
     }
 
     void Font_sys::render_text(const std::string & utf8_input, const Color & color,
@@ -367,9 +367,9 @@ namespace textogl
 
         render_text_common(color, win_size, pos, align_flags, rotation, text_box, coord_data,
 #ifndef USE_OPENGL_ES
-                    _vao,
+                    vao_,
 #endif
-                    _vbo);
+                    vbo_);
     }
 
     void Font_sys::Impl::render_text_common(const Color & color, const Vec2<float> & win_size,
@@ -447,9 +447,9 @@ namespace textogl
 
         render_text_common(color, model_view_projection, coord_data,
 #ifndef USE_OPENGL_ES
-                    _vao,
+                    vao_,
 #endif
-                    _vbo);
+                    vbo_);
     }
 
     void Font_sys::Impl::render_text_common(const Color & color, const Mat4<float> & model_view_projection,
@@ -470,20 +470,20 @@ namespace textogl
 #endif
 
         // set up shader uniforms
-        glUseProgram(_common_data->prog);
-        glUniformMatrix4fv(_common_data->uniform_locations["model_view_projection"], 1, GL_FALSE, &model_view_projection[0][0]);
-        glUniform4fv(_common_data->uniform_locations["color"], 1, &color[0]);
+        glUseProgram(common_data_->prog);
+        glUniformMatrix4fv(common_data_->uniform_locations["model_view_projection"], 1, GL_FALSE, &model_view_projection[0][0]);
+        glUniform4fv(common_data_->uniform_locations["color"], 1, &color[0]);
 
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glActiveTexture(GL_TEXTURE0 + _max_tu_count);
+        glActiveTexture(GL_TEXTURE0 + max_tu_count_);
 
         // draw text, per page
         for(const auto & cd: coord_data)
         {
             // bind the page's texture
-            glBindTexture(GL_TEXTURE_2D, _page_map[cd.page_no].tex);
+            glBindTexture(GL_TEXTURE_2D, page_map_[cd.page_no].tex);
             glDrawArrays(GL_TRIANGLES, cd.start, cd.num_elements);
         }
 
@@ -496,13 +496,13 @@ namespace textogl
     std::unordered_map<uint32_t, Font_sys::Impl::Page>::iterator Font_sys::Impl::load_page(const uint32_t page_no)
     {
         // this assumes the page has not been created yet
-        auto page_i = _page_map.emplace(std::make_pair(page_no, Page())).first;
+        auto page_i = page_map_.emplace(std::make_pair(page_no, Page())).first;
         Page & page = page_i->second;
 
         // greyscale pixel storage
-        std::vector<char> tex_data(_tex_width * _tex_height, 0);
+        std::vector<char> tex_data(tex_width_ * tex_height_, 0);
 
-        FT_GlyphSlot slot = _face->glyph;
+        FT_GlyphSlot slot = face_->glyph;
 
         // load each glyph in the page (256 per page)
         for(uint32_t code_pt = page_no << 8; code_pt < ((page_no + 1) << 8); code_pt++)
@@ -511,8 +511,8 @@ namespace textogl
             unsigned short tbl_col = code_pt & 0xF;
 
             // have freetype render the glyph
-            FT_UInt glyph_i = FT_Get_Char_Index(_face, code_pt);
-            if(FT_Load_Glyph(_face, glyph_i, FT_LOAD_RENDER) != FT_Err_Ok)
+            FT_UInt glyph_i = FT_Get_Char_Index(face_, code_pt);
+            if(FT_Load_Glyph(face_, glyph_i, FT_LOAD_RENDER) != FT_Err_Ok)
             {
                 std::cerr<<"Err loading glyph for: "<<std::hex<<std::showbase<<code_pt;
                 continue;
@@ -522,8 +522,8 @@ namespace textogl
             Char_info & c = page.char_info[code_pt & 0xFF];
 
             // set glyph properties
-            c.origin.x = -_cell_bbox.ul.x + slot->bitmap_left;
-            c.origin.y = _cell_bbox.ul.y - slot->bitmap_top;
+            c.origin.x = -cell_bbox_.ul.x + slot->bitmap_left;
+            c.origin.y = cell_bbox_.ul.y - slot->bitmap_top;
             c.bbox.ul.x = slot->bitmap_left;
             c.bbox.ul.y = slot->bitmap_top;
             c.bbox.lr.x = (int)bmp->width + slot->bitmap_left;
@@ -539,10 +539,10 @@ namespace textogl
             {
                 for(std::size_t x = 0; x < (std::size_t)bmp->width; ++x)
                 {
-                    long tbl_img_y = tbl_row * _cell_bbox.height() + _cell_bbox.ul.y - slot->bitmap_top + y;
-                    long tbl_img_x = tbl_col * _cell_bbox.width() - _cell_bbox.ul.x + slot->bitmap_left + x;
+                    long tbl_img_y = tbl_row * cell_bbox_.height() + cell_bbox_.ul.y - slot->bitmap_top + y;
+                    long tbl_img_x = tbl_col * cell_bbox_.width() - cell_bbox_.ul.x + slot->bitmap_left + x;
 
-                    tex_data[tbl_img_y * _tex_width + tbl_img_x] = bmp->buffer[y * bmp->width + x];
+                    tex_data[tbl_img_y * tex_width_ + tbl_img_x] = bmp->buffer[y * bmp->width + x];
                 }
             }
         }
@@ -552,9 +552,9 @@ namespace textogl
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, page.tex);
 #ifndef USE_OPENGL_ES
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, _tex_width, _tex_height, 0, GL_RED, GL_UNSIGNED_BYTE, tex_data.data());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, tex_width_, tex_height_, 0, GL_RED, GL_UNSIGNED_BYTE, tex_data.data());
 #else
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, _tex_width, _tex_height, 0, GL_ALPHA, GL_UNSIGNED_BYTE, tex_data.data());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, tex_width_, tex_height_, 0, GL_ALPHA, GL_UNSIGNED_BYTE, tex_data.data());
 #endif
 
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -590,17 +590,17 @@ namespace textogl
             if(code_pt == '\n')
             {
                 pen.x = 0;
-                pen.y += _line_height;
+                pen.y += line_height_;
                 prev_glyph_i = 0;
                 continue;
             }
 
             // get font page struct
             uint32_t page_no = code_pt >> 8;
-            auto page_i = _page_map.find(page_no);
+            auto page_i = page_map_.find(page_no);
 
             // load page if not already loaded
-            if(page_i == _page_map.end())
+            if(page_i == page_map_.end())
             {
                 page_i = load_page(code_pt >> 8);
             }
@@ -609,10 +609,10 @@ namespace textogl
             Font_sys::Impl::Char_info & c = page.char_info[code_pt & 0xFF];
 
             // add kerning if necessary
-            if(_has_kerning_info && prev_glyph_i && c.glyph_i)
+            if(has_kerning_info_ && prev_glyph_i && c.glyph_i)
             {
                 FT_Vector kerning = {0, 0};
-                if(FT_Get_Kerning(_face, prev_glyph_i, c.glyph_i, FT_KERNING_DEFAULT, &kerning) != FT_Err_Ok)
+                if(FT_Get_Kerning(face_, prev_glyph_i, c.glyph_i, FT_KERNING_DEFAULT, &kerning) != FT_Err_Ok)
                 {
                     std::cerr<<"Can't load kerning for: "<<std::hex<<std::showbase<<code_pt;
                 }
@@ -624,42 +624,42 @@ namespace textogl
             std::size_t tex_col = code_pt & 0xF;
 
             // texture coord of glyph's origin
-            Vec2<float> tex_origin = {(float)(tex_col * _cell_bbox.width() - _cell_bbox.ul.x),
-                (float)(tex_row * _cell_bbox.height() + _cell_bbox.ul.y)};
+            Vec2<float> tex_origin = {(float)(tex_col * cell_bbox_.width() - cell_bbox_.ul.x),
+                (float)(tex_row * cell_bbox_.height() + cell_bbox_.ul.y)};
 
             // push back vertex coords, and texture coords, interleaved, into a map by font page
             // 1 unit to pixel scale
             // lower left corner
             screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.ul.x,
                     pen.y - c.bbox.lr.y});
-            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.ul.x) / _tex_width,
-                    (tex_origin.y - c.bbox.lr.y) / _tex_height});
+            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.ul.x) / tex_width_,
+                    (tex_origin.y - c.bbox.lr.y) / tex_height_});
             // lower right corner
             screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.lr.x,
                     pen.y - c.bbox.lr.y});
-            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.lr.x) / _tex_width,
-                    (tex_origin.y - c.bbox.lr.y) / _tex_height});
+            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.lr.x) / tex_width_,
+                    (tex_origin.y - c.bbox.lr.y) / tex_height_});
             // upper left corner
             screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.ul.x,
                     pen.y - c.bbox.ul.y});
-            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.ul.x) / _tex_width,
-                    (tex_origin.y - c.bbox.ul.y) / _tex_height});
+            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.ul.x) / tex_width_,
+                    (tex_origin.y - c.bbox.ul.y) / tex_height_});
 
             // upper left corner
             screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.ul.x,
                     pen.y - c.bbox.ul.y});
-            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.ul.x) / _tex_width,
-                    (tex_origin.y - c.bbox.ul.y) / _tex_height});
+            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.ul.x) / tex_width_,
+                    (tex_origin.y - c.bbox.ul.y) / tex_height_});
             // lower right corner
             screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.lr.x,
                     pen.y - c.bbox.lr.y});
-            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.lr.x) / _tex_width,
-                    (tex_origin.y - c.bbox.lr.y) / _tex_height});
+            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.lr.x) / tex_width_,
+                    (tex_origin.y - c.bbox.lr.y) / tex_height_});
             // upper right corner
             screen_and_tex_coords[page_no].push_back({pen.x + c.bbox.lr.x,
                     pen.y - c.bbox.ul.y});
-            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.lr.x) / _tex_width,
-                    (tex_origin.y - c.bbox.ul.y) / _tex_height});
+            screen_and_tex_coords[page_no].push_back({(tex_origin.x + c.bbox.lr.x) / tex_width_,
+                    (tex_origin.y - c.bbox.ul.y) / tex_height_});
 
             // expand bounding box for whole string
             font_box.ul.x = std::min(font_box.ul.x, pen.x + c.bbox.ul.x);
@@ -696,9 +696,9 @@ namespace textogl
 
     void Font_sys::Impl::load_text_vbo(const std::vector<Vec2<float>> & coords) const
     {
-        glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 #ifndef USE_OPENGL_ES
-        glBindVertexArray(_vao);
+        glBindVertexArray(vao_);
 #endif
 
         // load text into buffer object

@@ -86,14 +86,14 @@ namespace textogl
         class Mat4
         {
         private:
-            Vec4<T> _data[4]{{}, {}, {}, {}};
+            Vec4<T> data_[4]{{}, {}, {}, {}};
         public:
 
             Mat4() = default;
 
             Mat4(Vec4<T> & x, const Vec4<T> & y, const Vec4<T> & z, const Vec4<T> &w)
             {
-                _data[0] = x; _data[1] = y; _data[2] = z; _data[3] = w;
+                data_[0] = x; data_[1] = y; data_[2] = z; data_[3] = w;
             }
 
             Mat4(T xx, T xy, T xz, T xw,
@@ -101,10 +101,10 @@ namespace textogl
                  T zx, T zy, T zz, T zw,
                  T wx, T wy, T wz, T ww)
             {
-                _data[0][0] = xx; _data[0][1] = xy; _data[0][2] = xz; _data[0][3] = xw;
-                _data[1][0] = yx; _data[1][1] = yy; _data[1][2] = yz; _data[1][3] = yw;
-                _data[2][0] = zx; _data[2][1] = zy; _data[2][2] = zz; _data[2][3] = zw;
-                _data[3][0] = wx; _data[3][1] = wy; _data[3][2] = wz; _data[3][3] = ww;
+                data_[0][0] = xx; data_[0][1] = xy; data_[0][2] = xz; data_[0][3] = xw;
+                data_[1][0] = yx; data_[1][1] = yy; data_[1][2] = yz; data_[1][3] = yw;
+                data_[2][0] = zx; data_[2][1] = zy; data_[2][2] = zz; data_[2][3] = zw;
+                data_[3][0] = wx; data_[3][1] = wy; data_[3][2] = wz; data_[3][3] = ww;
             }
 
             Mat4(T diagonal): Mat4(diagonal, 0, 0, 0,
@@ -117,8 +117,8 @@ namespace textogl
 
             /// To pass vector to OpenGL, do: <tt>&mat4[0][0]</tt>
             /// @{
-            Vec4<T> & operator[](std::size_t i) { return _data[i]; }
-            const Vec4<T> & operator[](std::size_t i) const { return _data[i]; }
+            Vec4<T> & operator[](std::size_t i) { return data_[i]; }
+            const Vec4<T> & operator[](std::size_t i) const { return data_[i]; }
             /// @}
 
 #ifndef USE_GLM
@@ -133,7 +133,7 @@ namespace textogl
                     {
                         out[col][row] = 0;
                         for(int k = 0; k < 4; ++k)
-                            out[col][row] += _data[k][row] * b[col][k];
+                            out[col][row] += data_[k][row] * b[col][k];
                     }
                 }
                 return out;

@@ -117,7 +117,7 @@ namespace textogl
 
         /// Every Font_sys object can use the same instance of Font_Common,
         /// so only one should ever be initialized at any given time.
-        /// Access to the single instance provied through Font_sys::_common_data
+        /// Access to the single instance provied through Font_sys::common_data_
         // TODO This is probably not thread-safe. Can we have it shared per-thread?
         class Font_common
         {
@@ -165,7 +165,7 @@ namespace textogl
         struct Coord_data
         {
             uint32_t page_no;         ///< Unicode code page number for a set of characters
-            std::size_t start;        ///< Starting index into \ref _vbo for this pages's quads
+            std::size_t start;        ///< Starting index into \ref vbo_ for this pages's quads
             std::size_t num_elements; ///< Number of indexs to render for this page
         };
 
@@ -194,9 +194,9 @@ namespace textogl
 
         /// Creates texture and layout information for the given code page
         /// @param page_no The Unicode page number to build
-        /// @returns iterator into \ref _page_map containing the page data
+        /// @returns iterator into \ref page_map_ containing the page data
         /// @note This assumes the page hasn't been created yet. Do not call
-        ///       if the page already exists in \ref _page_map
+        ///       if the page already exists in \ref page_map_
         std::unordered_map<uint32_t, Page>::iterator load_page(const uint32_t page_no);
 
         /// Common font rendering routine
@@ -241,34 +241,34 @@ namespace textogl
         void load_text_vbo(const std::vector<Vec2<float>> & coords ///< Vertex coordinates returned as part of \ref build_text
                           ) const;
 
-        static std::unique_ptr<Font_common> _common_data; ///< Font data common to all instances of Font_sys
-        static unsigned int _common_ref_cnt; ///< Reference count for \ref _common_data
+        static std::unique_ptr<Font_common> common_data_; ///< Font data common to all instances of Font_sys
+        static unsigned int common_ref_cnt_; ///< Reference count for \ref common_data_
 
         /// @name Font data
         /// @{
-        unsigned char * _font_data = nullptr; ///< Font file data
-        FT_Face _face;                        ///< Font face. [See Freetype documentation](https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_Face)
-        bool _has_kerning_info;               ///< \c true if the font has kerning information available
-        Bbox<int> _cell_bbox;                 ///< Bounding box representing maximum extents of a glyph
-        int _line_height;                     ///< Spacing between baselines for each line of text
+        unsigned char * font_data_ = nullptr; ///< Font file data
+        FT_Face face_;                        ///< Font face. [See Freetype documentation](https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_Face)
+        bool has_kerning_info_;               ///< \c true if the font has kerning information available
+        Bbox<int> cell_bbox_;                 ///< Bounding box representing maximum extents of a glyph
+        int line_height_;                     ///< Spacing between baselines for each line of text
         /// @}
 
         /// @name Texture size
         /// Width and height of the texture. Each font page will be rendered to a
         /// grid of 16x16 glyphs, with each cell in the grid being
-        /// \ref _cell_bbox sized + 2px for padding
+        /// \ref cell_bbox_ sized + 2px for padding
         /// @{
-        size_t _tex_width;
-        size_t _tex_height;
+        size_t tex_width_;
+        size_t tex_height_;
         /// @}
 
-        std::unordered_map<uint32_t, Page> _page_map; ///< Font pages
+        std::unordered_map<uint32_t, Page> page_map_; ///< Font pages
 
 #ifndef USE_OPENGL_ES
-        GLuint _vao; ///< OpenGL Vertex array object index
+        GLuint vao_; ///< OpenGL Vertex array object index
 #endif
-        GLuint _vbo; ///< OpenGL Vertex buffer object index
-        GLint _max_tu_count; ///< Max texture units supported by graphic driver
+        GLuint vbo_; ///< OpenGL Vertex buffer object index
+        GLint max_tu_count_; ///< Max texture units supported by graphic driver
     };
 }
 /// @endcond INTERNAL

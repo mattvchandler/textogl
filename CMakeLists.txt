@@ -9,7 +9,7 @@ set(WEBSITE "http://github.com/mattvchandler/${PROJECT_NAME}")
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 1)
-set(VERSION_PATCH 0)
+set(VERSION_PATCH 1)
 
 set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
@@ -146,12 +146,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         execute_process(COMMAND ${DPKG} --print-architecture
             OUTPUT_STRIP_TRAILING_WHITESPACE
             OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
-        if(NOT INCLUDE_SQLITE)
-            set(CPACK_DEBIAN_PACKAGE_DEPENDS
-                "libsqlite3-0")
-        else()
-            set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
-        endif()
         set(CPACK_DEBIAN_PACKAGE_SECTION "devel")
         string(TOLOWER "${CPACK_PACKAGE_NAME}" CPACK_DEBIAN_PACKAGE_NAME)
         set(CPACK_PACKAGE_FILE_NAME

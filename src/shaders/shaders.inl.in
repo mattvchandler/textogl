@@ -20,16 +20,10 @@
 
 // NOTE: The shader source itself will be filled in by CMake
 
-#ifdef USE_OPENGL_ES
-#include <GLES2/gl2.h>
-#else
-#include <GL/glew.h>
-#endif
-
-const GLchar * vert_shader_src = R"(
+const char * vert_shader_src = R"(
 @VERT_SHADER@
 )";
 
-const GLchar * frag_shader_src = R"(
+const char * frag_shader_src = R"(
 @FRAG_SHADER@
 )";

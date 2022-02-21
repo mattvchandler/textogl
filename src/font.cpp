@@ -222,21 +222,18 @@ namespace textogl
         ++common_ref_cnt_;
 
         // create and set up vertex array and buffer
-#ifndef USE_OPENGL_ES
         glGenVertexArrays(1, &vao_);
         glBindVertexArray(vao_);
-#endif
 
         glGenBuffers(1, &vbo_);
         glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 
-#ifndef USE_OPENGL_ES
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), NULL);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), (const GLvoid *)sizeof(Vec2<float>));
         glEnableVertexAttribArray(1);
         glBindVertexArray(0);
-#endif
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_tu_count_);
@@ -258,9 +255,7 @@ namespace textogl
 
         // destroy VAO/VBO
         glDeleteBuffers(1, &vbo_);
-#ifndef USE_OPENGL_ES
         glDeleteVertexArrays(1, &vao_);
-#endif
 
         // destroy textures
         for(auto & i: page_map_)
@@ -277,15 +272,11 @@ namespace textogl
         tex_width_(other.tex_width_),
         tex_height_(other.tex_height_),
         page_map_(std::move(other.page_map_)),
-#ifndef USE_OPENGL_ES
         vao_(other.vao_),
-#endif
         vbo_(other.vbo_)
     {
         other.face_ = nullptr;
-#ifndef USE_OPENGL_ES
         other.vao_ = 0;
-#endif
         other.vbo_ = 0;
         ++common_ref_cnt_;
     }
@@ -300,15 +291,11 @@ namespace textogl
             tex_width_ = other.tex_width_;
             tex_height_ = other.tex_height_;
             page_map_ = std::move(other.page_map_);
-#ifndef USE_OPENGL_ES
             vao_ = other.vao_;
-#endif
             vbo_ = other.vbo_;
 
             other.face_ = nullptr;
-#ifndef USE_OPENGL_ES
             other.vao_ = 0;
-#endif
             other.vbo_ = 0;
         }
         return *this;
@@ -365,20 +352,13 @@ namespace textogl
 
         load_text_vbo(coords);
 
-        render_text_common(color, win_size, pos, align_flags, rotation, text_box, coord_data,
-#ifndef USE_OPENGL_ES
-                    vao_,
-#endif
-                    vbo_);
+        render_text_common(color, win_size, pos, align_flags, rotation, text_box, coord_data, vao_, vbo_);
     }
 
     void Font_sys::Impl::render_text_common(const Color & color, const Vec2<float> & win_size,
             const Vec2<float> & pos, const int align_flags, const float rotation,
             const Bbox<float> & text_box, const std::vector<Coord_data> & coord_data,
-#ifndef USE_OPENGL_ES
-             GLuint vao,
-#endif
-             GLuint vbo)
+             GLuint vao, GLuint vbo)
     {
         Vec2<float> start_offset{0.0f, 0.0f};
 
@@ -428,11 +408,7 @@ namespace textogl
                         0.0f, 1.0f
         };
 
-        render_text_common(color, model_view_projection, coord_data,
-#ifndef USE_OPENGL_ES
-                    vao,
-#endif
-                    vbo);
+        render_text_common(color, model_view_projection, coord_data, vao, vbo);
     }
 
     void Font_sys::render_text_mat(const std::string & utf8_input, const Color & color, const Mat4<float> & model_view_projection)
@@ -445,29 +421,30 @@ namespace textogl
         std::vector<Font_sys::Impl::Coord_data> coord_data;
         std::tie(coords, coord_data, std::ignore) = build_text(utf8_input);
 
-        render_text_common(color, model_view_projection, coord_data,
-#ifndef USE_OPENGL_ES
-                    vao_,
-#endif
-                    vbo_);
+        render_text_common(color, model_view_projection, coord_data, vao_, vbo_);
     }
 
     void Font_sys::Impl::render_text_common(const Color & color, const Mat4<float> & model_view_projection,
-            const std::vector<Coord_data> & coord_data,
-#ifndef USE_OPENGL_ES
-             GLuint vao,
-#endif
-             GLuint vbo)
+            const std::vector<Coord_data> & coord_data, GLuint vao, GLuint vbo)
     {
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-#ifndef USE_OPENGL_ES
+        // save old settings
+        GLint old_vao{0}, old_vbo{0}, old_prog{0};
+        GLint old_blend_src{0}, old_blend_dst{0};
+        GLint old_active_texture{0}, old_texture_2d{0};
+
+        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &old_vao);
+        glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &old_vbo);
+        glGetIntegerv(GL_CURRENT_PROGRAM, &old_prog);
+        glGetIntegerv(GL_BLEND_SRC_RGB, &old_blend_src);
+        glGetIntegerv(GL_BLEND_DST_RGB, &old_blend_dst);
+        glGetIntegerv(GL_ACTIVE_TEXTURE, &old_active_texture);
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, &old_texture_2d);
+
+        auto old_depth_test = glIsEnabled(GL_DEPTH_TEST);
+        auto old_blend = glIsEnabled(GL_BLEND);
+
         glBindVertexArray(vao);
-#else
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), NULL);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec2<float>), (const GLvoid *)sizeof(Vec2<float>));
-        glEnableVertexAttribArray(1);
-#endif
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
         // set up shader uniforms
         glUseProgram(common_data_->prog);
@@ -487,10 +464,24 @@ namespace textogl
             glDrawArrays(GL_TRIANGLES, cd.start, cd.num_elements);
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-#ifndef USE_OPENGL_ES
-        glBindVertexArray(0);
-#endif
+        // restore old settings
+        glBindVertexArray(old_vao);
+        glBindBuffer(GL_ARRAY_BUFFER, old_vbo);
+        glUseProgram(old_prog);
+
+        if(old_depth_test)
+            glEnable(GL_DEPTH_TEST);
+        else
+            glDisable(GL_DEPTH_TEST);
+
+        if(old_blend)
+            glEnable(GL_BLEND);
+        else
+            glDisable(GL_BLEND);
+
+        glBlendFunc(old_blend_src, old_blend_dst);
+        glActiveTexture(old_active_texture);
+        glBindTexture(GL_TEXTURE_2D, old_texture_2d);
     }
 
     std::unordered_map<uint32_t, Font_sys::Impl::Page>::iterator Font_sys::Impl::load_page(const uint32_t page_no)
@@ -697,9 +688,6 @@ namespace textogl
     void Font_sys::Impl::load_text_vbo(const std::vector<Vec2<float>> & coords) const
     {
         glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-#ifndef USE_OPENGL_ES
-        glBindVertexArray(vao_);
-#endif
 
         // load text into buffer object
         // call glBufferData with NULL first - this is apparently faster for dynamic data loading

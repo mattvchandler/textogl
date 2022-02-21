@@ -3,13 +3,13 @@ project(textogl)
 
 set(TITLE "Textogl")
 set(AUTHOR "Matthew Chandler <tardarsauce@gmail.com>")
-set(COPYRIGHT "2019 Matthew Chandler")
+set(COPYRIGHT "2022 Matthew Chandler")
 set(SUMMARY "OpenGL Text renderer")
 set(WEBSITE "http://github.com/mattvchandler/${PROJECT_NAME}")
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 1)
-set(VERSION_PATCH 1)
+set(VERSION_PATCH 2)
 
 set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 

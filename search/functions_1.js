@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['operator_2a',['operator*',['../classtextogl_1_1detail_1_1_mat4.html#a7d80b6257f4a886e7c76f661728a6795',1,'textogl::detail::Mat4']]],
-  ['operator_2a_3d',['operator*=',['../classtextogl_1_1detail_1_1_mat4.html#aea716cbfb1369c75acf878b3975b81e0',1,'textogl::detail::Mat4']]],
-  ['operator_5b_5d',['operator[]',['../structtextogl_1_1detail_1_1_vec2.html#aef27dfb660073434e139208bd9026393',1,'textogl::detail::Vec2::operator[](std::size_t i)'],['../structtextogl_1_1detail_1_1_vec2.html#a8403b1bb38156e6fcf2fe6fbc33ee95e',1,'textogl::detail::Vec2::operator[](std::size_t i) const'],['../structtextogl_1_1detail_1_1_vec4.html#ad9ebf13e0645e782ab3354a141e1e855',1,'textogl::detail::Vec4::operator[](std::size_t i)'],['../structtextogl_1_1detail_1_1_vec4.html#a268a1ff40d0b8265ad925e0e016dee7a',1,'textogl::detail::Vec4::operator[](std::size_t i) const'],['../classtextogl_1_1detail_1_1_mat4.html#a8425771e694f9518ab7ffc299d5bc956',1,'textogl::detail::Mat4::operator[](std::size_t i)'],['../classtextogl_1_1detail_1_1_mat4.html#ae3b81fc6f936b2fb8a9bc8d6de590065',1,'textogl::detail::Mat4::operator[](std::size_t i) const']]]
+  ['render_5ftext_35',['render_text',['../classtextogl_1_1_font__sys.html#a19bfd076d04aa81333f2e5c78f0a7d37',1,'textogl::Font_sys::render_text()'],['../classtextogl_1_1_static__text.html#ab1ab5367fbf2f9254c5ff6587cb305db',1,'textogl::Static_text::render_text()']]],
+  ['render_5ftext_5fmat_36',['render_text_mat',['../classtextogl_1_1_font__sys.html#a748d0871fbcb0ba6a2260edf865d69cd',1,'textogl::Font_sys::render_text_mat()'],['../classtextogl_1_1_static__text.html#a72d666055a06e07583e5614d6b0f272f',1,'textogl::Static_text::render_text_mat()']]],
+  ['render_5ftext_5frotate_37',['render_text_rotate',['../classtextogl_1_1_font__sys.html#abb516c73d458afc1ebdea07c52137214',1,'textogl::Font_sys::render_text_rotate()'],['../classtextogl_1_1_static__text.html#a9b533744cae3c4e2d9dc47a43d757678',1,'textogl::Static_text::render_text_rotate()']]],
+  ['resize_38',['resize',['../classtextogl_1_1_font__sys.html#a0256e9a9932f67109b303688c024f27a',1,'textogl::Font_sys']]]
 ];

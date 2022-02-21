@@ -1,5 +1,6 @@
 <map id="types.hpp" name="types.hpp">
-<area shape="rect" id="node2" href="$font_8hpp.html" title="Font loading and text display. " alt="" coords="89,80,158,107"/>
-<area shape="rect" id="node3" href="$static__text_8hpp.html" title="Static text object. " alt="" coords="5,155,113,181"/>
-<area shape="rect" id="node4" href="$font__impl_8hpp.html" title="Font loading and text display internal implementation. " alt="" coords="137,155,237,181"/>
+<area shape="rect" id="node1" title="Vector and matrix types." alt="" coords="91,5,177,32"/>
+<area shape="rect" id="node2" href="$font_8hpp.html" title="Font loading and text display." alt="" coords="96,80,172,107"/>
+<area shape="rect" id="node3" href="$static__text_8hpp.html" title="Static text object." alt="" coords="5,155,124,181"/>
+<area shape="rect" id="node4" href="$font__impl_8hpp.html" title="Font loading and text display internal implementation." alt="" coords="147,155,259,181"/>
 </map>

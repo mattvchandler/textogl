@@ -53,9 +53,9 @@ namespace textogl
 
             if(compile_status != GL_TRUE)
             {
-                GLint log_length;
+                GLint log_length {0};
                 glGetShaderiv(i.first, GL_INFO_LOG_LENGTH, &log_length);
-                std::vector<char> log(log_length + 1);
+                std::vector<char> log(std::max(log_length + 1, 1));
                 log.back() = '\0';
                 glGetShaderInfoLog(i.first, log_length, NULL, log.data());
 
@@ -90,9 +90,9 @@ namespace textogl
         glGetProgramiv(prog, GL_LINK_STATUS, &link_status);
         if(link_status != GL_TRUE)
         {
-            GLint log_length;
+            GLint log_length {0};
             glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &log_length);
-            std::vector<char> log(log_length + 1);
+            std::vector<char> log(std::max(log_length + 1, 1));
             log.back() = '\0';
             glGetProgramInfoLog(prog, log_length, NULL, log.data());
 

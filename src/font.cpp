@@ -46,7 +46,7 @@ std::u32string utf8_to_utf32(const std::string & utf8)
     uint32_t code_pt = 0;
     int expected_bytes = 0;
 
-    for(const uint8_t & byte: utf8)
+    for(const uint8_t byte: utf8)
     {
         // detect invalid bytes
         if(byte == 0xC0 || byte == 0xC1 || byte >= 0xF5)
@@ -616,8 +616,8 @@ namespace textogl
                 {
                     std::cerr<<"Can't load kerning for: "<<std::hex<<std::showbase<<code_pt;
                 }
-                pen.x += kerning.x / 64;
-                pen.y -= kerning.y / 64;
+                pen.x += kerning.x / 64.0f;
+                pen.y -= kerning.y / 64.0f;
             }
 
             std::size_t tex_row = (code_pt >> 4) & 0xF;
@@ -668,8 +668,8 @@ namespace textogl
             font_box.lr.y = std::max(font_box.lr.y, pen.y - c.bbox.lr.y);
 
             // advance to next origin
-            pen.x += c.advance.x / 64;
-            pen.y -= c.advance.y / 64;
+            pen.x += c.advance.x / 64.0f;
+            pen.y -= c.advance.y / 64.0f;
 
             prev_glyph_i = c.glyph_i;
         }
